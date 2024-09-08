@@ -227,11 +227,6 @@ export class CursorConfiguration {
 			return minColumn;
 		}
 
-		const maxColumn = model.getLineMaxColumn(lineNumber);
-		if (result > maxColumn) {
-			return maxColumn;
-		}
-
 		return result;
 	}
 }
@@ -272,8 +267,8 @@ export class CursorState {
 		const selection = Selection.liftSelection(modelSelection);
 		const modelState = new SingleCursorState(
 			Range.fromPositions(selection.getSelectionStart()),
-			SelectionStartKind.Simple, 0,
-			selection.getPosition(), 0
+			SelectionStartKind.Simple,
+			selection.getPosition()
 		);
 		return CursorState.fromModelState(modelState);
 	}
@@ -336,18 +331,14 @@ export class SingleCursorState {
 	constructor(
 		public readonly selectionStart: Range,
 		public readonly selectionStartKind: SelectionStartKind,
-		public readonly selectionStartLeftoverVisibleColumns: number,
 		public readonly position: Position,
-		public readonly leftoverVisibleColumns: number,
 	) {
 		this.selection = SingleCursorState._computeSelection(this.selectionStart, this.position);
 	}
 
 	public equals(other: SingleCursorState) {
 		return (
-			this.selectionStartLeftoverVisibleColumns === other.selectionStartLeftoverVisibleColumns
-			&& this.leftoverVisibleColumns === other.leftoverVisibleColumns
-			&& this.selectionStartKind === other.selectionStartKind
+			this.selectionStartKind === other.selectionStartKind
 			&& this.position.equals(other.position)
 			&& this.selectionStart.equalsRange(other.selectionStart)
 		);
@@ -357,24 +348,20 @@ export class SingleCursorState {
 		return (!this.selection.isEmpty() || !this.selectionStart.isEmpty());
 	}
 
-	public move(inSelectionMode: boolean, lineNumber: number, column: number, leftoverVisibleColumns: number): SingleCursorState {
+	public move(inSelectionMode: boolean, lineNumber: number, column: number): SingleCursorState {
 		if (inSelectionMode) {
 			// move just position
 			return new SingleCursorState(
 				this.selectionStart,
 				this.selectionStartKind,
-				this.selectionStartLeftoverVisibleColumns,
 				new Position(lineNumber, column),
-				leftoverVisibleColumns
 			);
 		} else {
 			// move everything
 			return new SingleCursorState(
 				new Range(lineNumber, column, lineNumber, column),
 				SelectionStartKind.Simple,
-				leftoverVisibleColumns,
 				new Position(lineNumber, column),
-				leftoverVisibleColumns
 			);
 		}
 	}

@@ -61,7 +61,8 @@ class TransposeLettersAction extends EditorAction {
 			// otherwise, transpose left and right chars
 			const endPosition = (column === lastColumn) ?
 				selection.getPosition() :
-				MoveOperations.rightPosition(model, selection.getPosition().lineNumber, selection.getPosition().column);
+				// TODO
+				MoveOperations.rightPosition(model, selection.getPosition().lineNumber, selection.getPosition().column, false);
 
 			const middlePosition = MoveOperations.leftPosition(model, endPosition);
 			const beginPosition = MoveOperations.leftPosition(model, middlePosition);

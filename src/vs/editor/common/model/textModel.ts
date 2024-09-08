@@ -968,11 +968,6 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 			return true;
 		}
 
-		const maxColumn = this.getLineMaxColumn(lineNumber);
-		if (column > maxColumn) {
-			return false;
-		}
-
 		if (validationType === StringOffsetValidationType.SurrogatePairs) {
 			// !!At this point, column > 1
 			const charCodeBefore = this._buffer.getLineCharCode(lineNumber, column - 2);

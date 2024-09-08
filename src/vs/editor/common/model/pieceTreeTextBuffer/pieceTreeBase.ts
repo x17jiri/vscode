@@ -632,7 +632,7 @@ export class PieceTreeBase {
 		if (nodePos.remainder === nodePos.node.piece.length) {
 			// the char we want to fetch is at the head of next node.
 			const matchingNode = nodePos.node.next();
-			if (!matchingNode) {
+			if (!matchingNode || matchingNode === SENTINEL) {
 				return 0;
 			}
 
@@ -1564,6 +1564,7 @@ export class PieceTreeBase {
 		}
 
 		// search in order, to find the node contains position.column
+		let prev_x = x;
 		x = x.next();
 		while (x !== SENTINEL) {
 
@@ -1588,10 +1589,15 @@ export class PieceTreeBase {
 				}
 			}
 
+			prev_x = x;
 			x = x.next();
 		}
 
-		return null!;
+		return {
+			node: prev_x,
+			remainder: prev_x.piece.length - 1,
+			nodeStartOffset: this.offsetOfNode(prev_x)
+		};
 	}
 
 	private nodeCharCodeAt(node: TreeNode, offset: number): number {
