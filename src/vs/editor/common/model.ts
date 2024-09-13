@@ -516,6 +516,7 @@ export class TextModelResolvedOptions {
 	readonly defaultEOL: DefaultEndOfLine;
 	readonly trimAutoWhitespace: boolean;
 	readonly bracketPairColorizationOptions: BracketPairColorizationOptions;
+	readonly virtualSpace: boolean;
 
 	public get originalIndentSize(): number | 'tabSize' {
 		return this._indentSizeIsTabSize ? 'tabSize' : this.indentSize;
@@ -531,6 +532,7 @@ export class TextModelResolvedOptions {
 		defaultEOL: DefaultEndOfLine;
 		trimAutoWhitespace: boolean;
 		bracketPairColorizationOptions: BracketPairColorizationOptions;
+		virtualSpace: boolean;
 	}) {
 		this.tabSize = Math.max(1, src.tabSize | 0);
 		if (src.indentSize === 'tabSize') {
@@ -544,6 +546,7 @@ export class TextModelResolvedOptions {
 		this.defaultEOL = src.defaultEOL | 0;
 		this.trimAutoWhitespace = Boolean(src.trimAutoWhitespace);
 		this.bracketPairColorizationOptions = src.bracketPairColorizationOptions;
+		this.virtualSpace = Boolean(src.virtualSpace);
 	}
 
 	/**
@@ -587,6 +590,7 @@ export interface ITextModelCreationOptions {
 	isForSimpleWidget: boolean;
 	largeFileOptimizations: boolean;
 	bracketPairColorizationOptions: BracketPairColorizationOptions;
+	virtualSpace: boolean;
 }
 
 export interface BracketPairColorizationOptions {
@@ -600,6 +604,7 @@ export interface ITextModelUpdateOptions {
 	insertSpaces?: boolean;
 	trimAutoWhitespace?: boolean;
 	bracketColorizationOptions?: BracketPairColorizationOptions;
+	virtualSpace?: boolean;
 }
 
 export class FindMatch {

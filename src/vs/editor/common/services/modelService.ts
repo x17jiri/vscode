@@ -57,6 +57,7 @@ interface IRawEditorConfig {
 	creationOptions?: any;
 	largeFileOptimizations?: any;
 	bracketPairColorization?: any;
+	virtualSpace?: any;
 }
 
 interface IRawConfig {
@@ -173,6 +174,10 @@ export class ModelService extends Disposable implements IModelService {
 				independentColorPoolPerBracketType: !!config.editor.bracketPairColorization.independentColorPoolPerBracketType
 			};
 		}
+		let virtualSpace = EDITOR_MODEL_DEFAULTS.virtualSpace;
+		if (config.editor && typeof config.editor.virtualSpace !== 'undefined') {
+			virtualSpace = (config.editor.virtualSpace === 'false' ? false : Boolean(config.editor.virtualSpace));
+		}
 
 		return {
 			isForSimpleWidget: isForSimpleWidget,
@@ -183,7 +188,8 @@ export class ModelService extends Disposable implements IModelService {
 			defaultEOL: newDefaultEOL,
 			trimAutoWhitespace: trimAutoWhitespace,
 			largeFileOptimizations: largeFileOptimizations,
-			bracketPairColorizationOptions
+			bracketPairColorizationOptions,
+			virtualSpace,
 		};
 	}
 
