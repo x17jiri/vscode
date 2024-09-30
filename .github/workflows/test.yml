@@ -31,10 +31,11 @@ jobs:
       run: |
         npm install
         npm run gulp vscode-linux-x64
+        cp -r ../VSCode-linux-x64 .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: build-output
-        path: ../VSCode-linux-x64
+        path: VSCode-linux-x64
 
