@@ -36,5 +36,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build-output
-        path: ../VSCode-win32-x64
+        path: ../VSCode-linux-x64
 
