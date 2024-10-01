@@ -2,9 +2,9 @@ name: NodeJS with Gulp
 
 on:
   push:
-    branches: [ "package-test" ]
+    branches: [ "package-*" ]
   pull_request:
-    branches: [ "package-test" ]
+    branches: [ "package-*" ]
 
 jobs:
 #  linux:
@@ -32,12 +32,14 @@ jobs:
 #        npm install
 #        npm run gulp vscode-linux-x64
 #        cp -r ../VSCode-linux-x64 .
+#        mv VSCode-linux-x64 code-x17-linux-x64
+#        zip -r code-x17-linux-x64.zip code-x17-linux-x64
 #
 #    - name: Upload artifact
 #      uses: actions/upload-artifact@v3
 #      with:
-#        name: build-output
-#        path: VSCode-linux-x64
+#        name: code-x17-linux-x64
+#        path: code-x17-linux-x64.zip
 
   windows:
     runs-on: windows-latest
@@ -63,12 +65,14 @@ jobs:
       run: |
         npm install
         npm run gulp vscode-linux-x64
-        xcopy ../VSCode-linux-x64 . /E /I
+        xcopy ../VSCode-win32-x64 . /E /I
+        ren VSCode-win32-x64 code-x17-win32-x64
+        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build-output
-        path: VSCode-linux-x64
+        name: code-x17-win32-x64
+        path: code-x17-win32-x64.zip
       
       
