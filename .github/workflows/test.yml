@@ -7,8 +7,40 @@ on:
     branches: [ "package-test" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+#  linux:
+#    runs-on: ubuntu-latest
+#
+#    strategy:
+#      matrix:
+#        node-version: [20.x]
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Use Node.js ${{ matrix.node-version }}
+#      uses: actions/setup-node@v4
+#      with:
+#        node-version: ${{ matrix.node-version }}
+#
+#    - name: Install dependencies
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install -y libkrb5-dev
+#
+#    - name: Build
+#      run: |
+#        npm install
+#        npm run gulp vscode-linux-x64
+#        cp -r ../VSCode-linux-x64 .
+#
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: build-output
+#        path: VSCode-linux-x64
+
+  windows:
+    runs-on: windows-latest
 
     strategy:
       matrix:
@@ -22,20 +54,21 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libkrb5-dev
+#    - name: Install dependencies
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install -y libkrb5-dev
 
     - name: Build
       run: |
         npm install
         npm run gulp vscode-linux-x64
-        cp -r ../VSCode-linux-x64 .
+        xcopy ../VSCode-linux-x64 . /E /I
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: build-output
         path: VSCode-linux-x64
-
+      
+      
