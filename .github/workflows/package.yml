@@ -63,4 +63,5 @@ jobs:
 
     - name: Build
       run: |
-        dir -s "C:/Program Files (x86)/Windows Kits/10/bin"
+        cd "C:/Program Files (x86)/Windows Kits/10/bin"
+        dir -s signtool.exe
