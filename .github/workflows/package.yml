@@ -63,5 +63,4 @@ jobs:
 
     - name: Build
       run: |
-        npm install
-        Get-ChildItem -Path . -Filter rcedit.exe -Recurse -ErrorAction SilentlyContinue
+        dir -s "C:/Program Files (x86)/Windows Kits/10/bin"
