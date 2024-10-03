@@ -42,7 +42,7 @@ jobs:
 #        path: code-x17-linux-x64.zip
 
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     strategy:
       matrix:
