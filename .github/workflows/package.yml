@@ -63,5 +63,15 @@ jobs:
 
     - name: Build
       run: |
-        cd "C:/Program Files (x86)/Windows Kits/10/bin"
-        dir -s signtool.exe
+        npm install
+        npm run gulp vscode-win32-x64
+#        mkdir code-x17-win32-x64
+#        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
+#        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
+
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: code-x17-win32-x64
+#        path: code-x17-win32-x64.zip
+
