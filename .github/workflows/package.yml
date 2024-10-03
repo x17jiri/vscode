@@ -64,4 +64,4 @@ jobs:
     - name: Build
       run: |
         npm install
-        dir /s rcedit.exe
+        Get-ChildItem -Path . -Filter rcedit.exe -Recurse -ErrorAction SilentlyContinue
