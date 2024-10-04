@@ -51,36 +51,31 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: test
+    - name: Install Visual Studio 2010 Redistributable Files
       run: |
         cp vcredist_2010\\msvcp100.dll C:\\Windows\\System32\\
         cp vcredist_2010\\msvcr100.dll C:\\Windows\\System32\\
 
-    - name: test2
-      run: |
-        where msvcp100.dll
-      shell: cmd
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
 
-#    - name: Use Node.js ${{ matrix.node-version }}
-#      uses: actions/setup-node@v4
-#      with:
-#        node-version: ${{ matrix.node-version }}
-#
-##    - name: Install dependencies
-##      run: |
-##        sudo apt-get update
-##        sudo apt-get install -y libkrb5-dev
-#
-#    - name: Build
+#    - name: Install dependencies
 #      run: |
-#        npm install
-#        npm run gulp vscode-win32-x64
-#        mkdir code-x17-win32-x64
-#        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
-#        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
-#
-#    - name: Upload artifact
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: code-x17-win32-x64
-#        path: code-x17-win32-x64.zip
+#        sudo apt-get update
+#        sudo apt-get install -y libkrb5-dev
+
+    - name: Build
+      run: |
+        npm install
+        npm run gulp vscode-win32-x64
+        mkdir code-x17-win32-x64
+        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
+        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-x17-win32-x64
+        path: code-x17-win32-x64.zip
