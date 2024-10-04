@@ -54,7 +54,7 @@ jobs:
     - name: test
       run: |
         cp vcredist_2010\\msvcp100.dll C:\\Windows\\System32\\
-        cp vcredist_2010\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\msvcr100.dll C:\\Windows\\System32\\
+        cp vcredist_2010\\msvcr100.dll C:\\Windows\\System32\\
 
     - name: test2
       run: |
