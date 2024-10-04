@@ -36,7 +36,7 @@ jobs:
         mv ./code-x17-linux-x64/VSCode-linux-x64 ./code-x17-linux-x64/code-x17-linux-x64
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-x17-linux-x64
         path: code-x17-linux-x64
@@ -65,7 +65,7 @@ jobs:
         xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64\code-x17-win32-x64 /E /I
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-x17-win32-x64
         path: code-x17-win32-x64
