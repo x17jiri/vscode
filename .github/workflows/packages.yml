@@ -1,0 +1,72 @@
+name: Build Packages
+
+on:
+  push:
+    branches: [ "*-package", "*-package-*" ]
+  pull_request:
+    branches: [ "*-package", "*-package-*" ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libkrb5-dev
+
+    - name: Build
+      run: |
+        npm install
+        npm run gulp vscode-linux-x64
+        mkdir code-x17-linux-x64
+        cp -r ../VSCode-linux-x64 ./code-x17-linux-x64/
+        mv ./code-x17-linux-x64/VSCode-linux-x64 ./code-x17-linux-x64/code-x17-linux-x64
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-x17-linux-x64
+        path: code-x17-linux-x64
+
+  windows:
+    runs-on: windows-2022
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Build
+      run: |
+        npm install
+        npm run gulp vscode-win32-x64
+        mkdir code-x17-win32-x64
+        mkdir code-x17-win32-x64\code-x17-win32-x64
+        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64\code-x17-win32-x64 /E /I
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-x17-win32-x64
+        path: code-x17-win32-x64
+
