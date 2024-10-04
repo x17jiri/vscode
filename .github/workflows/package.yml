@@ -54,23 +54,23 @@ jobs:
         try {
           Get-Command -Name msvcp100.dll
         } catch {
-          Write-Error msvcp100.dll not found
+          Write-Error "msvcp100.dll not found"
         }
         try {
           Get-Command -Name msvcr100.dll
         } catch {
-          Write-Error msvcr100.dll not found
+          Write-Error "msvcr100.dll not found"
         }
         curl -L -o vcredist_x64.exe https://download.microsoft.com/download/1/1/0/110d9ed4-0761-4390-936e-0d66b0d192c3/vcredist_x64.exe
         .\vcredist_x64.exe /quiet /norestart
         try {
           Get-Command -Name msvcp100.dll
         } catch {
-          Write-Error msvcp100.dll not found
+          Write-Error "msvcp100.dll not found"
         }
         try {
           Get-Command -Name msvcr100.dll
         } catch {
-          Write-Error msvcr100.dll not found
+          Write-Error "msvcr100.dll not found"
         }
       shell: pwsh
