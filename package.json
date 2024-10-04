@@ -139,7 +139,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/experimental-utils": "^5.57.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "@vscode/gulp-electron": "^1.36.0",
+    "@vscode/gulp-electron": "git+https://github.com/x17jiri/vscode-gulp-electron.git#bump-rcedit-version",
     "@vscode/l10n-dev": "0.0.35",
     "@vscode/telemetry-extractor": "^1.10.2",
     "@vscode/test-cli": "^0.0.6",
