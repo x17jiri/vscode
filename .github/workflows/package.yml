@@ -49,42 +49,28 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - name: Download and install Microsoft Visual C++ 2010 Redistributable (x64)
-      run: |
-        try {
-          Get-Command -Name msvcp100.dll
-        } catch {
-          Write-Output "msvcp100.dll not found"
-        }
-        try {
-          Get-Command -Name msvcr100.dll
-        } catch {
-          Write-Output "msvcr100.dll not found"
-        }
-        curl -L -o vcredist_x64.exe https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe
-        .\vcredist_x64.exe /quiet /norestart
-        try {
-          Get-Command -Name msvcp100.dll
-        } catch {
-          Write-Output "msvcp100.dll not found"
-        }
-        try {
-          Get-Command -Name msvcr100.dll
-        } catch {
-          Write-Output "msvcr100.dll not found"
-        }
-      shell: pwsh
+    - uses: actions/checkout@v4
 
-    - name: test
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+#    - name: Install dependencies
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install -y libkrb5-dev
+
+    - name: Build
       run: |
-        try {
-          Get-Command -Name msvcp100.dll
-        } catch {
-          Write-Output "msvcp100.dll not found"
-        }
-        try {
-          Get-Command -Name msvcr100.dll
-        } catch {
-          Write-Output "msvcr100.dll not found"
-        }
-      shell: pwsh
+        npm install
+        npm run gulp vscode-win32-x64
+        mkdir code-x17-win32-x64
+        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
+        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-x17-win32-x64
+        path: code-x17-win32-x64.zip
