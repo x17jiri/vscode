@@ -48,11 +48,6 @@ jobs:
       matrix:
         node-version: [20.x]
 
-    steps:
-    - name: Compile Visual Studio project with MSBuild
-      shell: cmd
-      run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" && msbuild' }}
-
     - name: Download and install Microsoft Visual C++ 2010 Redistributable (x64)
       run: |
         try {
@@ -65,7 +60,7 @@ jobs:
         } catch {
           Write-Output "msvcr100.dll not found"
         }
-        curl -L -o vcredist_x64.exe https://download.microsoft.com/download/1/1/0/110d9ed4-0761-4390-936e-0d66b0d192c3/vcredist_x64.exe
+        curl -L -o vcredist_x64.exe https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe
         .\vcredist_x64.exe /quiet /norestart
         try {
           Get-Command -Name msvcp100.dll
