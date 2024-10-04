@@ -49,28 +49,33 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
-#    - name: Install dependencies
-#      run: |
-#        sudo apt-get update
-#        sudo apt-get install -y libkrb5-dev
-
-    - name: Build
+    - name: test
       run: |
-        npm install
-        npm run gulp vscode-win32-x64
-        mkdir code-x17-win32-x64
-        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
-        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
+        where msvcp100.dll
+      shell: cmd
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: code-x17-win32-x64
-        path: code-x17-win32-x64.zip
+#    - uses: actions/checkout@v4
+#
+#    - name: Use Node.js ${{ matrix.node-version }}
+#      uses: actions/setup-node@v4
+#      with:
+#        node-version: ${{ matrix.node-version }}
+#
+##    - name: Install dependencies
+##      run: |
+##        sudo apt-get update
+##        sudo apt-get install -y libkrb5-dev
+#
+#    - name: Build
+#      run: |
+#        npm install
+#        npm run gulp vscode-win32-x64
+#        mkdir code-x17-win32-x64
+#        xcopy ..\VSCode-win32-x64 .\code-x17-win32-x64 /E /I
+#        7z a -tzip code-x17-win32-x64.zip code-x17-win32-x64
+#
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: code-x17-win32-x64
+#        path: code-x17-win32-x64.zip
