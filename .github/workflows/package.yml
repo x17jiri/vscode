@@ -55,7 +55,12 @@ jobs:
       run: |
         regsvr32 node_modules\@vscode\gulp-electron\node_modules\rcedit\bin\msvcp100.dll
         regsvr32 node_modules\@vscode\gulp-electron\node_modules\rcedit\bin\msvcr100.dll
-        Get-Command -Name msvcp100.dll
+      shell: pwsh
+
+    - name: test2
+      run: |
+        where msvcp100.dll
+      shell: cmd
 
 #
 #    - name: Use Node.js ${{ matrix.node-version }}
