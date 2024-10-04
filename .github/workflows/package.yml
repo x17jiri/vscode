@@ -49,28 +49,34 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
+#    - uses: actions/checkout@v4
+#
+#    - name: test
+#      run: |
+#        dir
+#        dir node_modules
+#        dir node_modules\\@vscode
+#        dir node_modules\\@vscode\\gulp-electron
+#        dir node_modules\\@vscode\\gulp-electron\\node_modules
+#        dir node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit
+#        dir node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin
+#
+#        cp node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\msvcp100.dll C:\\Windows\\System32\\
+#        cp node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\msvcr100.dll C:\\Windows\\System32\\
+#      shell: cmd
 
-    - name: test
+
+    - name: Install Redistributable files for Visual Studio 2010
       run: |
-        dir
-        dir node_modules
-        dir node_modules\\@vscode
-        dir node_modules\\@vscode\\gulp-electron
-        dir node_modules\\@vscode\\gulp-electron\\node_modules
-        dir node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit
-        dir node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin
-
-        cp node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\msvcp100.dll C:\\Windows\\System32\\
-        cp node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\msvcr100.dll C:\\Windows\\System32\\
-      shell: cmd
+        Invoke-WebRequest -Uri "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe" -OutFile vcredist_x86.exe
+        .\vcredist_x86.exe /quiet /norestart
 
     - name: test2
       run: |
         where msvcp100.dll
       shell: cmd
 
-#
+
 #    - name: Use Node.js ${{ matrix.node-version }}
 #      uses: actions/setup-node@v4
 #      with:
