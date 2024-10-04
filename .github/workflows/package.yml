@@ -69,7 +69,7 @@ jobs:
     - name: Install Redistributable files for Visual Studio 2010
       run: |
         Invoke-WebRequest -Uri "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe" -OutFile vcredist_x86.exe
-        vcredist_x86.exe /extract:vcredist_x86 /quiet /passive
+        .\vcredist_x86.exe /extract:vcredist_x86 /quiet /passive
         mkdir vcredist_x86\vc_red
         expand -F:* vcredist_x86\vc_red.cab vcredist_x86\vc_red\
         cp vcredist_x86\vc_red\F_CENTRAL_msvcp100_x86 c:\Windows\System32\msvcp100.dll
