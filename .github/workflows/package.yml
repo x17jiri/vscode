@@ -53,6 +53,8 @@ jobs:
 
     - name: test
       run: |
+        dir
+        dir node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\*.dll C:\\Windows\\System32\\
         cp node_modules\\@vscode\\gulp-electron\\node_modules\\rcedit\\bin\\*.dll C:\\Windows\\System32\\
       shell: cmd
 
