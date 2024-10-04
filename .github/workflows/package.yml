@@ -49,6 +49,10 @@ jobs:
         node-version: [20.x]
 
     steps:
+    - name: Compile Visual Studio project with MSBuild
+      shell: cmd
+      run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" && msbuild' }}
+
     - name: Download and install Microsoft Visual C++ 2010 Redistributable (x64)
       run: |
         try {
