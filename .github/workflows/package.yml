@@ -74,3 +74,17 @@ jobs:
           Write-Output "msvcr100.dll not found"
         }
       shell: pwsh
+
+    - name: test
+      run: |
+        try {
+          Get-Command -Name msvcp100.dll
+        } catch {
+          Write-Output "msvcp100.dll not found"
+        }
+        try {
+          Get-Command -Name msvcr100.dll
+        } catch {
+          Write-Output "msvcr100.dll not found"
+        }
+      shell: pwsh
