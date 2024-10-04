@@ -49,12 +49,15 @@ jobs:
         node-version: [20.x]
 
     steps:
+    - uses: actions/checkout@v4
+
     - name: test
       run: |
+        regsvr32 node_modules\@vscode\gulp-electron\node_modules\rcedit\bin\msvcp100.dll
+        regsvr32 node_modules\@vscode\gulp-electron\node_modules\rcedit\bin\msvcr100.dll
         where msvcp100.dll
       shell: cmd
 
-#    - uses: actions/checkout@v4
 #
 #    - name: Use Node.js ${{ matrix.node-version }}
 #      uses: actions/setup-node@v4
