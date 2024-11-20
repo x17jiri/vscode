@@ -12,8 +12,6 @@ export class ColumnSelection {
 	public static columnSelect(config: CursorConfiguration, model: ICursorSimpleModel, fromLineNumber: number, fromVisibleColumn: number, toLineNumber: number, toVisibleColumn: number): IColumnSelectResult {
 		const lineCount = Math.abs(toLineNumber - fromLineNumber) + 1;
 		const reversed = (fromLineNumber > toLineNumber);
-		const isRTL = (fromVisibleColumn > toVisibleColumn);
-		const isLTR = (fromVisibleColumn < toVisibleColumn);
 
 		const result: SingleCursorState[] = [];
 
@@ -27,45 +25,17 @@ export class ColumnSelection {
 			const visibleStartColumn = config.visibleColumnFromColumn(model, new Position(lineNumber, startColumn));
 			const visibleEndColumn = config.visibleColumnFromColumn(model, new Position(lineNumber, endColumn));
 
-			// console.log(`lineNumber: ${lineNumber}: visibleStartColumn: ${visibleStartColumn}, visibleEndColumn: ${visibleEndColumn}`);
-
-			if (isLTR) {
-				if (visibleStartColumn > toVisibleColumn) {
-					continue;
-				}
-				if (visibleEndColumn < fromVisibleColumn) {
-					continue;
-				}
-			}
-
-			if (isRTL) {
-				if (visibleEndColumn > fromVisibleColumn) {
-					continue;
-				}
-				if (visibleStartColumn < toVisibleColumn) {
-					continue;
-				}
-			}
+			const selectionStartLeftoverVisibleColumns = fromVisibleColumn - visibleStartColumn;
+			const leftoverVisibleColumns = toVisibleColumn - visibleEndColumn;
 
 			result.push(new SingleCursorState(
-				new Range(lineNumber, startColumn, lineNumber, startColumn), SelectionStartKind.Simple,
+				new Range(lineNumber, startColumn, lineNumber, startColumn),
+				SelectionStartKind.Simple,
+				selectionStartLeftoverVisibleColumns,
 				new Position(lineNumber, endColumn),
-				null
+				leftoverVisibleColumns,
+				null,
 			));
-		}
-
-		if (result.length === 0) {
-			// We are after all the lines, so add cursor at the end of each line
-			for (let i = 0; i < lineCount; i++) {
-				const lineNumber = fromLineNumber + (reversed ? -i : i);
-				const maxColumn = model.getLineMaxColumn(lineNumber);
-
-				result.push(new SingleCursorState(
-					new Range(lineNumber, maxColumn, lineNumber, maxColumn), SelectionStartKind.Simple,
-					new Position(lineNumber, maxColumn),
-					null
-				));
-			}
 		}
 
 		return {

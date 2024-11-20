@@ -975,7 +975,7 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 
 		const maxColumn = this.getLineMaxColumn(lineNumber);
 		if (column > maxColumn) {
-			return this._options.virtualSpace;
+			return false; // this._options.virtualSpace;
 		}
 
 		if (validationType === StringOffsetValidationType.SurrogatePairs) {

@@ -301,6 +301,10 @@ export class CursorsController extends Disposable {
 		return this._cursors.getSelections();
 	}
 
+	public getSelectionsInVirtualSpace(): Selection[] {
+		return this._cursors.getSelectionsInVirtualSpace();
+	}
+
 	public getPosition(): Position {
 		return this._cursors.getPrimaryCursor().modelState.position;
 	}
@@ -406,7 +410,7 @@ export class CursorsController extends Disposable {
 		}
 
 		const selections = this._cursors.getSelections();
-		const viewSelections = this._cursors.getViewSelections();
+		const viewSelections = this._cursors.getViewSelectionsInVirtualSpace();
 
 		// Let the view get the event first.
 		eventsCollector.emitViewEvent(new ViewCursorStateChangedEvent(viewSelections, selections, reason));
@@ -593,7 +597,7 @@ export class CursorsController extends Disposable {
 
 	public paste(eventsCollector: ViewModelEventsCollector, text: string, pasteOnNewLine: boolean, multicursorText?: string[] | null | undefined, source?: string | null | undefined): void {
 		this._executeEdit(() => {
-			this._executeEditOperation(TypeOperations.paste(this.context.cursorConfig, this._model, this.getSelections(), text, pasteOnNewLine, multicursorText || []));
+			this._executeEditOperation(TypeOperations.paste(this.context.cursorConfig, this._model, this.getSelectionsInVirtualSpace(), text, pasteOnNewLine, multicursorText || []));
 		}, eventsCollector, source, CursorChangeReason.Paste);
 	}
 

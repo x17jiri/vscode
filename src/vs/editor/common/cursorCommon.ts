@@ -229,12 +229,12 @@ export class CursorConfiguration {
 			return minColumn;
 		}
 
-		if (!this.virtualSpace) {
-			const maxColumn = model.getLineMaxColumn(lineNumber);
-			if (result > maxColumn) {
-				return maxColumn;
-			}
+		//		if (!this.virtualSpace) {
+		const maxColumn = model.getLineMaxColumn(lineNumber);
+		if (result > maxColumn) {
+			return maxColumn;
 		}
+		//		}
 
 		return result;
 	}
@@ -276,9 +276,8 @@ export class CursorState {
 		const selection = Selection.liftSelection(modelSelection);
 		const modelState = new SingleCursorState(
 			Range.fromPositions(selection.getSelectionStart()),
-			SelectionStartKind.Simple,
-			selection.getPosition(),
-			null
+			SelectionStartKind.Simple, 0,
+			selection.getPosition(), 0, null,
 		);
 		return CursorState.fromModelState(modelState);
 	}
@@ -338,18 +337,23 @@ export class SingleCursorState {
 
 	public readonly selection: Selection;
 
+	// Note that columnHint is only used when this is a cursor position in the view model.
 	constructor(
 		public readonly selectionStart: Range,
 		public readonly selectionStartKind: SelectionStartKind,
+		public readonly selectionStartLeftoverVisibleColumns: number,
 		public readonly position: Position,
-		public readonly columnHint: number | null
+		public readonly leftoverVisibleColumns: number,
+		public readonly columnHint: number | null,
 	) {
 		this.selection = SingleCursorState._computeSelection(this.selectionStart, this.position);
 	}
 
 	public equals(other: SingleCursorState) {
 		return (
-			this.columnHint === other.columnHint
+			this.selectionStartLeftoverVisibleColumns === other.selectionStartLeftoverVisibleColumns
+			&& this.leftoverVisibleColumns === other.leftoverVisibleColumns
+			&& this.columnHint === other.columnHint
 			&& this.selectionStartKind === other.selectionStartKind
 			&& this.position.equals(other.position)
 			&& this.selectionStart.equalsRange(other.selectionStart)
@@ -360,22 +364,26 @@ export class SingleCursorState {
 		return (!this.selection.isEmpty() || !this.selectionStart.isEmpty());
 	}
 
-	public move(inSelectionMode: boolean, lineNumber: number, column: number, columnHint: number | null): SingleCursorState {
+	public move(inSelectionMode: boolean, lineNumber: number, column: number, leftoverVisibleColumns: number, columnHint: number | null): SingleCursorState {
 		if (inSelectionMode) {
 			// move just position
 			return new SingleCursorState(
 				this.selectionStart,
 				this.selectionStartKind,
+				this.selectionStartLeftoverVisibleColumns,
 				new Position(lineNumber, column),
-				columnHint
+				leftoverVisibleColumns,
+				columnHint,
 			);
 		} else {
 			// move everything
 			return new SingleCursorState(
 				new Range(lineNumber, column, lineNumber, column),
 				SelectionStartKind.Simple,
+				leftoverVisibleColumns,
 				new Position(lineNumber, column),
-				columnHint
+				leftoverVisibleColumns,
+				columnHint,
 			);
 		}
 	}
