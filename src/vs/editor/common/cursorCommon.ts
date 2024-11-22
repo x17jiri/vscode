@@ -7,7 +7,7 @@ import { ConfigurationChangedEvent, EditorAutoClosingEditStrategy, EditorAutoClo
 import { LineTokens } from './tokens/lineTokens.js';
 import { Position } from './core/position.js';
 import { Range } from './core/range.js';
-import { ISelection, Selection } from './core/selection.js';
+import { ISelection, Selection, SelectionDirection } from './core/selection.js';
 import { ICommand } from './editorCommon.js';
 import { IEditorConfiguration } from './config/editorConfiguration.js';
 import { PositionAffinity, TextModelResolvedOptions } from './model.js';
@@ -272,20 +272,21 @@ export class CursorState {
 		return new PartialViewCursorState(viewState);
 	}
 
-	public static fromModelSelection(modelSelection: ISelection): PartialModelCursorState {
-		const selection = Selection.liftSelection(modelSelection);
+	public static fromModelSelection(model: ICursorSimpleModel, modelSelection: ISelection): PartialModelCursorState {
+		const start = PositionTripple.fromSelectionStart(model, modelSelection);
+		const pos = PositionTripple.fromSelectionPosition(model, modelSelection);
 		const modelState = new SingleCursorState(
-			Range.fromPositions(selection.getSelectionStart()),
-			SelectionStartKind.Simple, 0,
-			selection.getPosition(), 0, null,
+			new Range(start.lineNumber, start.column, pos.lineNumber, pos.column),
+			SelectionStartKind.Simple, start.leftoverVisibleColumns,
+			new Position(pos.lineNumber, pos.column), pos.leftoverVisibleColumns, null,
 		);
 		return CursorState.fromModelState(modelState);
 	}
 
-	public static fromModelSelections(modelSelections: readonly ISelection[]): PartialModelCursorState[] {
+	public static fromModelSelections(model: ICursorSimpleModel, modelSelections: readonly ISelection[]): PartialModelCursorState[] {
 		const states: PartialModelCursorState[] = [];
 		for (let i = 0, len = modelSelections.length; i < len; i++) {
-			states[i] = this.fromModelSelection(modelSelections[i]);
+			states[i] = this.fromModelSelection(model, modelSelections[i]);
 		}
 		return states;
 	}
@@ -329,6 +330,38 @@ export const enum SelectionStartKind {
 	Line
 }
 
+export class PositionTripple {
+	constructor(
+		public readonly lineNumber: number,
+		public readonly column: number,
+		public readonly leftoverVisibleColumns: number,
+	) { }
+
+	public static fromSelectionStart(model: ICursorSimpleModel, selection: ISelection): PositionTripple {
+		const lineNumber = selection.selectionStartLineNumber;
+		let column = selection.selectionStartColumn;
+		let leftoverVisibleColumns = 0;
+		const maxColumn = model.getLineMaxColumn(lineNumber);
+		if (column > maxColumn) {
+			leftoverVisibleColumns = column - maxColumn;
+			column = maxColumn;
+		}
+		return new PositionTripple(lineNumber, column, leftoverVisibleColumns);
+	}
+
+	public static fromSelectionPosition(model: ICursorSimpleModel, selection: ISelection): PositionTripple {
+		const lineNumber = selection.positionLineNumber;
+		let column = selection.positionColumn;
+		let leftoverVisibleColumns = 0;
+		const maxColumn = model.getLineMaxColumn(lineNumber);
+		if (column > maxColumn) {
+			leftoverVisibleColumns = column - maxColumn;
+			column = maxColumn;
+		}
+		return new PositionTripple(lineNumber, column, leftoverVisibleColumns);
+	}
+}
+
 /**
  * Represents the cursor state on either the model or on the view model.
  */
@@ -337,7 +370,9 @@ export class SingleCursorState {
 
 	public readonly selection: Selection;
 
-	// Note that columnHint is only used when this is a cursor position in the view model.
+	// Assumptions:
+	// - columnHint is only used when this is view cursor state
+	// - selectionStartLeftoverVisibleColumns can be != 0 only if selectionStart is an empty range
 	constructor(
 		public readonly selectionStart: Range,
 		public readonly selectionStartKind: SelectionStartKind,
@@ -360,8 +395,12 @@ export class SingleCursorState {
 		);
 	}
 
-	public hasSelection(): boolean {
-		return (!this.selection.isEmpty() || !this.selectionStart.isEmpty());
+	public hasSelection(virtualSpace: boolean): boolean {
+		return (
+			!this.selection.isEmpty()
+			|| !this.selectionStart.isEmpty()
+			|| (virtualSpace && this.selectionStartLeftoverVisibleColumns !== this.leftoverVisibleColumns)
+		);
 	}
 
 	public move(inSelectionMode: boolean, lineNumber: number, column: number, leftoverVisibleColumns: number, columnHint: number | null): SingleCursorState {
@@ -384,6 +423,62 @@ export class SingleCursorState {
 				new Position(lineNumber, column),
 				leftoverVisibleColumns,
 				columnHint,
+			);
+		}
+	}
+
+	public virtualSpaceSelStart(): Position {
+		return new Position(
+			this.selection.selectionStartLineNumber,
+			this.selection.selectionStartColumn + this.selectionStartLeftoverVisibleColumns,
+		);
+	}
+
+	public virtualSpacePosition(): Position {
+		return new Position(
+			this.position.lineNumber,
+			this.position.column + this.leftoverVisibleColumns,
+		);
+	}
+
+	public virtualSpaceSelection(): Selection {
+		return Selection.fromPositions(this.virtualSpaceSelStart(), this.virtualSpacePosition());
+	}
+
+	public isLTR(): boolean {
+		return this.selection.isEmpty()
+			? this.selectionStartLeftoverVisibleColumns < this.leftoverVisibleColumns
+			: this.selection.getDirection() === SelectionDirection.LTR;
+	}
+
+	public leftmostPosition(): PositionTripple {
+		if (this.isLTR()) {
+			return new PositionTripple(
+				this.selection.selectionStartLineNumber,
+				this.selection.selectionStartColumn,
+				this.selectionStartLeftoverVisibleColumns,
+			);
+		} else {
+			return new PositionTripple(
+				this.position.lineNumber,
+				this.position.column,
+				this.leftoverVisibleColumns,
+			);
+		}
+	}
+
+	public rightmostPosition(): PositionTripple {
+		if (this.isLTR()) {
+			return new PositionTripple(
+				this.position.lineNumber,
+				this.position.column,
+				this.leftoverVisibleColumns,
+			);
+		} else {
+			return new PositionTripple(
+				this.selection.selectionStartLineNumber,
+				this.selection.selectionStartColumn,
+				this.selectionStartLeftoverVisibleColumns,
 			);
 		}
 	}

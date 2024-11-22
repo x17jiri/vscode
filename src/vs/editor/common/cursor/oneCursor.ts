@@ -137,12 +137,26 @@ export class Cursor {
 		} else {
 			// Validate new model state
 			const selectionStart = context.model.validateRange(modelState.selectionStart);
+			let selectionStartLeftoverVisibleColumns = modelState.selectionStartLeftoverVisibleColumns;
+			if (
+				selectionStart.startLineNumber === modelState.selectionStart.startLineNumber
+				&& selectionStart.startColumn < modelState.selectionStart.startColumn
+			) {
+				selectionStartLeftoverVisibleColumns += modelState.selectionStart.startColumn - selectionStart.startColumn;
+			}
 
 			const position = context.model.validatePosition(modelState.position);
+			let leftoverVisibleColumns = modelState.leftoverVisibleColumns;
+			if (
+				position.lineNumber === modelState.position.lineNumber
+				&& position.column < modelState.position.column
+			) {
+				leftoverVisibleColumns += modelState.position.column - position.column;
+			}
 
 			modelState = new SingleCursorState(
-				selectionStart, modelState.selectionStartKind, modelState.selectionStartLeftoverVisibleColumns,
-				position, modelState.leftoverVisibleColumns, null,
+				selectionStart, modelState.selectionStartKind, selectionStartLeftoverVisibleColumns,
+				position, leftoverVisibleColumns, null,
 			);
 		}
 

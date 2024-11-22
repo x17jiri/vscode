@@ -238,7 +238,7 @@ export class CursorMoveCommands {
 	}
 
 	public static cancelSelection(viewModel: IViewModel, cursor: CursorState): PartialCursorState {
-		if (!cursor.modelState.hasSelection()) {
+		if (!cursor.modelState.hasSelection(viewModel.cursorConfig.virtualSpace)) {
 			return new CursorState(cursor.modelState, cursor.viewState);
 		}
 

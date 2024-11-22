@@ -1679,7 +1679,8 @@ export namespace CoreNavigationCommands {
 			const states = viewModel.getCursorStates();
 			const newStates: PartialCursorState[] = states.slice(0);
 			const lastAddedState = states[lastAddedCursorIndex];
-			newStates[lastAddedCursorIndex] = CursorMoveCommands.word(viewModel, lastAddedState, lastAddedState.modelState.hasSelection(), args.position);
+			const hasSelection = lastAddedState.modelState.hasSelection(viewModel.cursorConfig.virtualSpace);
+			newStates[lastAddedCursorIndex] = CursorMoveCommands.word(viewModel, lastAddedState, hasSelection, args.position);
 
 			viewModel.model.pushStackElement();
 			viewModel.setCursorStates(
@@ -1926,7 +1927,7 @@ export namespace CoreNavigationCommands {
 				args.source,
 				CursorChangeReason.Explicit,
 				[
-					CursorState.fromModelSelection(args.selection)
+					CursorState.fromModelSelection(viewModel.model, args.selection)
 				]
 			);
 		}

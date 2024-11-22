@@ -5,7 +5,7 @@
 
 import { compareBy } from '../../../base/common/arrays.js';
 import { findLastMax, findFirstMin } from '../../../base/common/arraysFind.js';
-import { CursorState, PartialCursorState } from '../cursorCommon.js';
+import { CursorState, PartialCursorState, ICursorSimpleModel } from '../cursorCommon.js';
 import { CursorContext } from './cursorContext.js';
 import { Cursor } from './oneCursor.js';
 import { Position } from '../core/position.js';
@@ -112,8 +112,8 @@ export class CursorCollection {
 		return this.cursors.map(c => c.viewState.selection);
 	}
 
-	public setSelections(selections: ISelection[]): void {
-		this.setStates(CursorState.fromModelSelections(selections));
+	public setSelections(model: ICursorSimpleModel, selections: ISelection[]): void {
+		this.setStates(CursorState.fromModelSelections(model, selections));
 	}
 
 	public getPrimaryCursor(): CursorState {
@@ -176,7 +176,7 @@ export class CursorCollection {
 		this.cursors.splice(removeIndex + 1, 1);
 	}
 
-	public normalize(): void {
+	public normalize(model: ICursorSimpleModel): void {
 		if (this.cursors.length === 1) {
 			return;
 		}
@@ -190,7 +190,7 @@ export class CursorCollection {
 		for (let i = 0, len = cursors.length; i < len; i++) {
 			sortedCursors.push({
 				index: i,
-				selection: cursors[i].modelState.selection,
+				selection: cursors[i].modelState.virtualSpaceSelection()
 			});
 		}
 
@@ -249,7 +249,7 @@ export class CursorCollection {
 					}
 
 					sortedCursors[winnerSortedCursorIndex].selection = resultingSelection;
-					const resultingState = CursorState.fromModelSelection(resultingSelection);
+					const resultingState = CursorState.fromModelSelection(model, resultingSelection);
 					cursors[winnerIndex].setState(this.context, resultingState.modelState, resultingState.viewState);
 				}
 
