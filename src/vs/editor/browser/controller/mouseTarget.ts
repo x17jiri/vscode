@@ -240,7 +240,6 @@ export class HitTestContext {
 	public readonly viewDomNode: HTMLElement;
 	public readonly lineHeight: number;
 	public readonly stickyTabStops: boolean;
-	public readonly typicalHalfwidthCharacterWidth: number;
 	public readonly spaceWidth: number;
 	public readonly lastRenderData: PointerHandlerLastRenderData;
 
@@ -254,7 +253,6 @@ export class HitTestContext {
 		this.viewDomNode = viewHelper.viewDomNode;
 		this.lineHeight = options.get(EditorOption.lineHeight);
 		this.stickyTabStops = options.get(EditorOption.stickyTabStops);
-		this.typicalHalfwidthCharacterWidth = options.get(EditorOption.fontInfo).typicalHalfwidthCharacterWidth;
 		this.spaceWidth = options.get(EditorOption.fontInfo).spaceWidth;
 		this.lastRenderData = lastRenderData;
 		this._context = context;
@@ -393,8 +391,6 @@ abstract class BareHitTestRequest {
 	public readonly isInContentArea: boolean;
 	public readonly mouseContentHorizontalOffset: number;
 
-	protected readonly mouseColumn: number;
-
 	constructor(ctx: HitTestContext, editorPos: EditorPagePosition, pos: PageCoordinates, relativePos: CoordinatesRelativeToEditor) {
 		this.editorPos = editorPos;
 		this.pos = pos;
@@ -404,7 +400,6 @@ abstract class BareHitTestRequest {
 		this.mouseContentHorizontalOffset = ctx.getCurrentScrollLeft() + this.relativePos.x - ctx.layoutInfo.contentLeft;
 		this.isInMarginArea = (this.relativePos.x < ctx.layoutInfo.contentLeft && this.relativePos.x >= ctx.layoutInfo.glyphMarginLeft);
 		this.isInContentArea = !this.isInMarginArea;
-		this.mouseColumn = Math.max(0, MouseTargetFactory._getMouseColumn(this.mouseContentHorizontalOffset, ctx.typicalHalfwidthCharacterWidth));
 	}
 }
 
@@ -457,40 +452,74 @@ class HitTestRequest extends BareHitTestRequest {
 		this._useHitTestTarget = true;
 	}
 
-	private _getMouseColumn(position: Position | null = null): number {
-		if (position && position.column < this._ctx.viewModel.getLineMaxColumn(position.lineNumber)) {
-			// Most likely, the line contains foreign decorations...
-			return CursorColumns.visibleColumnFromColumn(this._ctx.viewModel.getLineContent(position.lineNumber), position.column, this._ctx.viewModel.model.getOptions().tabSize) + 1;
+	private _getMouseColumn(position: Position | null = null): { leftoverVisibleColumns: number; mouseColumn: number } {
+		if (position) {
+			const visibleColumn = 1 + CursorColumns.visibleColumnFromColumn(this._ctx.viewModel.getLineContent(position.lineNumber), position.column, this._ctx.viewModel.model.getOptions().tabSize);
+			const maxColumn = this._ctx.viewModel.getLineMaxColumn(position.lineNumber);
+			if (position.column < maxColumn) {
+				return { leftoverVisibleColumns: 0, mouseColumn: visibleColumn };
+			}
+
+			const visibleRange = this._ctx.visibleRangeForPosition(position.lineNumber, maxColumn);
+			if (visibleRange !== null) {
+				const lineWidth = visibleRange.originalLeft;
+				const spaceWidth = this._ctx.spaceWidth;
+				const offset = this.mouseContentHorizontalOffset - lineWidth - spaceWidth / 2;
+				const leftoverVisibleColumns = Math.max(0, MouseTargetFactory._getMouseColumn(offset, spaceWidth) - 1);
+				return {
+					leftoverVisibleColumns,
+					mouseColumn: visibleColumn + leftoverVisibleColumns,
+				};
+			}
 		}
-		return this.mouseColumn;
+
+		return {
+			leftoverVisibleColumns: 0,
+			mouseColumn: Math.max(0, MouseTargetFactory._getMouseColumn(this.mouseContentHorizontalOffset, this._ctx.spaceWidth)),
+		};
 	}
 
 	public fulfillUnknown(position: Position | null = null): IMouseTargetUnknown {
-		return MouseTarget.createUnknown(this.target, this._getMouseColumn(position), position);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = position !== null ? new Position(position.lineNumber, position.column + leftoverVisibleColumns) : null;
+		return MouseTarget.createUnknown(this.target, mouseColumn, newPosition);
 	}
 	public fulfillTextarea(): IMouseTargetTextarea {
-		return MouseTarget.createTextarea(this.target, this._getMouseColumn());
+		const { mouseColumn } = this._getMouseColumn();
+		return MouseTarget.createTextarea(this.target, mouseColumn);
 	}
 	public fulfillMargin(type: MouseTargetType.GUTTER_GLYPH_MARGIN | MouseTargetType.GUTTER_LINE_NUMBERS | MouseTargetType.GUTTER_LINE_DECORATIONS, position: Position, range: EditorRange, detail: IMouseTargetMarginData): IMouseTargetMargin {
-		return MouseTarget.createMargin(type, this.target, this._getMouseColumn(position), position, range, detail);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
+		return MouseTarget.createMargin(type, this.target, mouseColumn, newPosition, range, detail);
 	}
 	public fulfillViewZone(type: MouseTargetType.GUTTER_VIEW_ZONE | MouseTargetType.CONTENT_VIEW_ZONE, position: Position, detail: IMouseTargetViewZoneData): IMouseTargetViewZone {
-		return MouseTarget.createViewZone(type, this.target, this._getMouseColumn(position), position, detail);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
+		return MouseTarget.createViewZone(type, this.target, mouseColumn, newPosition, detail);
 	}
 	public fulfillContentText(position: Position, range: EditorRange | null, detail: IMouseTargetContentTextData): IMouseTargetContentText {
-		return MouseTarget.createContentText(this.target, this._getMouseColumn(position), position, range, detail);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
+		return MouseTarget.createContentText(this.target, mouseColumn, newPosition, range, detail);
 	}
 	public fulfillContentEmpty(position: Position, detail: IMouseTargetContentEmptyData): IMouseTargetContentEmpty {
-		return MouseTarget.createContentEmpty(this.target, this._getMouseColumn(position), position, detail);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
+		return MouseTarget.createContentEmpty(this.target, mouseColumn, newPosition, detail);
 	}
 	public fulfillContentWidget(detail: string): IMouseTargetContentWidget {
-		return MouseTarget.createContentWidget(this.target, this._getMouseColumn(), detail);
+		const { mouseColumn } = this._getMouseColumn();
+		return MouseTarget.createContentWidget(this.target, mouseColumn, detail);
 	}
 	public fulfillScrollbar(position: Position): IMouseTargetScrollbar {
-		return MouseTarget.createScrollbar(this.target, this._getMouseColumn(position), position);
+		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
+		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
+		return MouseTarget.createScrollbar(this.target, mouseColumn, newPosition);
 	}
 	public fulfillOverlayWidget(detail: string): IMouseTargetOverlayWidget {
-		return MouseTarget.createOverlayWidget(this.target, this._getMouseColumn(), detail);
+		const { mouseColumn } = this._getMouseColumn();
+		return MouseTarget.createOverlayWidget(this.target, mouseColumn, detail);
 	}
 }
 
@@ -743,21 +772,17 @@ export class MouseTargetFactory {
 		// See https://github.com/microsoft/vscode/issues/46942
 		if (ElementPath.isStrictChildOfViewLines(request.targetPath)) {
 			const lineNumber = ctx.getLineNumberAtVerticalOffset(request.mouseVerticalOffset);
-			const lineWidth = ctx.visibleRangeForPosition(lineNumber, ctx.viewModel.getLineMaxColumn(lineNumber))?.originalLeft || 0;
-			const pxBehind = request.mouseContentHorizontalOffset - lineWidth;
-			const spaceWidth = ctx.spaceWidth;
-			const colsBehind = Math.floor(pxBehind / spaceWidth);
-
 			if (ctx.viewModel.getLineLength(lineNumber) === 0) {
-				const detail = createEmptyContentDataInLines(pxBehind);
-				const pos = new Position(lineNumber, 1 + colsBehind);
-				return request.fulfillContentEmpty(pos, detail);
+				const lineWidth = ctx.getLineWidth(lineNumber);
+				const detail = createEmptyContentDataInLines(request.mouseContentHorizontalOffset - lineWidth);
+				return request.fulfillContentEmpty(new Position(lineNumber, 1), detail);
 			}
 
+			const lineWidth = ctx.getLineWidth(lineNumber);
 			if (request.mouseContentHorizontalOffset >= lineWidth) {
 				// TODO: This is wrong for RTL
-				const detail = createEmptyContentDataInLines(pxBehind);
-				const pos = new Position(lineNumber, ctx.viewModel.getLineMaxColumn(lineNumber) + colsBehind);
+				const detail = createEmptyContentDataInLines(request.mouseContentHorizontalOffset - lineWidth);
+				const pos = new Position(lineNumber, ctx.viewModel.getLineMaxColumn(lineNumber));
 				return request.fulfillContentEmpty(pos, detail);
 			}
 		}
@@ -819,14 +844,14 @@ export class MouseTargetFactory {
 		const options = this._context.configuration.options;
 		const layoutInfo = options.get(EditorOption.layoutInfo);
 		const mouseContentHorizontalOffset = this._context.viewLayout.getCurrentScrollLeft() + relativePos.x - layoutInfo.contentLeft;
-		return MouseTargetFactory._getMouseColumn(mouseContentHorizontalOffset, options.get(EditorOption.fontInfo).typicalHalfwidthCharacterWidth);
+		return MouseTargetFactory._getMouseColumn(mouseContentHorizontalOffset, options.get(EditorOption.fontInfo).spaceWidth);
 	}
 
-	public static _getMouseColumn(mouseContentHorizontalOffset: number, typicalHalfwidthCharacterWidth: number): number {
+	public static _getMouseColumn(mouseContentHorizontalOffset: number, columnWidth: number): number {
 		if (mouseContentHorizontalOffset < 0) {
 			return 1;
 		}
-		const chars = Math.round(mouseContentHorizontalOffset / typicalHalfwidthCharacterWidth);
+		const chars = Math.round(mouseContentHorizontalOffset / columnWidth);
 		return (chars + 1);
 	}
 

@@ -637,7 +637,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 				}
 				controller.setSelections(new ViewModelEventsCollector(), undefined, delSelections, CursorChangeReason.Explicit);
 			} else {
-				// TODO - is this ok? The setSelections() method expects model selections
+				// TODO - should I add cellViewModel.getSelectionsInVirtualSpace()?
 				// get the selections from the viewmodel since we run the command manually (for cursor decoration reasons)
 				controller.setSelections(new ViewModelEventsCollector(), undefined, match.cellViewModel.getSelections(), CursorChangeReason.Explicit);
 			}

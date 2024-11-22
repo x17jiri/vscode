@@ -57,12 +57,6 @@ class TransposeLettersAction extends EditorAction {
 				continue;
 			}
 
-			// TODO - should we handle this situation? We need to test this
-			//			if (column > lastColumn) {
-			//				// beyond the end of line, nothing to do
-			//				continue;
-			//			}
-
 			// handle special case: when at end of line, transpose left two chars
 			// otherwise, transpose left and right chars
 			const endPosition = (column === lastColumn) ?
