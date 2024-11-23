@@ -128,9 +128,10 @@ export class Cursor {
 			);
 
 			const selectionStartMaxColumn = context.viewModel.getLineMaxColumn(viewState.selection.selectionStartLineNumber);
-			const selectionStartLeftoverVisibleColumns = Math.max(0, selectionStartMaxColumn - selectionStart.endColumn);
-			const positionMaxColumn = context.viewModel.getLineMaxColumn(position.lineNumber);
-			const leftoverVisibleColumns = Math.max(0, positionMaxColumn - position.column);
+			const selectionStartLeftoverVisibleColumns = Math.max(0, viewState.selection.selectionStartColumn - selectionStartMaxColumn);
+
+			const positionMaxColumn = context.viewModel.getLineMaxColumn(viewState.position.lineNumber);
+			const leftoverVisibleColumns = Math.max(0, viewState.position.column - positionMaxColumn);
 
 			modelState = new SingleCursorState(
 				selectionStart, viewState.selectionStartKind, selectionStartLeftoverVisibleColumns,
@@ -158,7 +159,7 @@ export class Cursor {
 
 			modelState = new SingleCursorState(
 				selectionStart, modelState.selectionStartKind, selectionStartLeftoverVisibleColumns,
-				position, leftoverVisibleColumns, null,
+				position, leftoverVisibleColumns, modelState.columnHint,
 			);
 		}
 

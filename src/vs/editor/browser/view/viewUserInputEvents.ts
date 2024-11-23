@@ -96,6 +96,7 @@ export class ViewUserInputEvents {
 	public static convertViewToModelMouseTarget(target: IMouseTarget, coordinatesConverter: ICoordinatesConverter): IMouseTarget {
 		const result = { ...target };
 		if (result.position) {
+
 			result.position = coordinatesConverter.convertViewPositionToModelPosition(result.position);
 		}
 		if (result.range) {

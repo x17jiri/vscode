@@ -77,35 +77,35 @@ export class MouseTarget {
 		}
 		return range ?? null;
 	}
-	public static createUnknown(element: HTMLElement | null, mouseColumn: number, position: Position | null): IMouseTargetUnknown {
-		return { type: MouseTargetType.UNKNOWN, element, mouseColumn, position, range: this._deduceRage(position) };
+	public static createUnknown(element: HTMLElement | null, mouseColumn: number, position: Position | null, leftoverVisibleColumns: number): IMouseTargetUnknown {
+		return { type: MouseTargetType.UNKNOWN, element, mouseColumn, position, range: this._deduceRage(position), leftoverVisibleColumns };
 	}
 	public static createTextarea(element: HTMLElement | null, mouseColumn: number): IMouseTargetTextarea {
-		return { type: MouseTargetType.TEXTAREA, element, mouseColumn, position: null, range: null };
+		return { type: MouseTargetType.TEXTAREA, element, mouseColumn, position: null, leftoverVisibleColumns: 0, range: null };
 	}
-	public static createMargin(type: MouseTargetType.GUTTER_GLYPH_MARGIN | MouseTargetType.GUTTER_LINE_NUMBERS | MouseTargetType.GUTTER_LINE_DECORATIONS, element: HTMLElement | null, mouseColumn: number, position: Position, range: EditorRange, detail: IMouseTargetMarginData): IMouseTargetMargin {
-		return { type, element, mouseColumn, position, range, detail };
+	public static createMargin(type: MouseTargetType.GUTTER_GLYPH_MARGIN | MouseTargetType.GUTTER_LINE_NUMBERS | MouseTargetType.GUTTER_LINE_DECORATIONS, element: HTMLElement | null, mouseColumn: number, position: Position, leftoverVisibleColumns: number, range: EditorRange, detail: IMouseTargetMarginData): IMouseTargetMargin {
+		return { type, element, mouseColumn, position, leftoverVisibleColumns, range, detail };
 	}
-	public static createViewZone(type: MouseTargetType.GUTTER_VIEW_ZONE | MouseTargetType.CONTENT_VIEW_ZONE, element: HTMLElement | null, mouseColumn: number, position: Position, detail: IMouseTargetViewZoneData): IMouseTargetViewZone {
-		return { type, element, mouseColumn, position, range: this._deduceRage(position), detail };
+	public static createViewZone(type: MouseTargetType.GUTTER_VIEW_ZONE | MouseTargetType.CONTENT_VIEW_ZONE, element: HTMLElement | null, mouseColumn: number, position: Position, leftoverVisibleColumns: number, detail: IMouseTargetViewZoneData): IMouseTargetViewZone {
+		return { type, element, mouseColumn, position, leftoverVisibleColumns, range: this._deduceRage(position), detail };
 	}
-	public static createContentText(element: HTMLElement | null, mouseColumn: number, position: Position, range: EditorRange | null, detail: IMouseTargetContentTextData): IMouseTargetContentText {
-		return { type: MouseTargetType.CONTENT_TEXT, element, mouseColumn, position, range: this._deduceRage(position, range), detail };
+	public static createContentText(element: HTMLElement | null, mouseColumn: number, position: Position, leftoverVisibleColumns: number, range: EditorRange | null, detail: IMouseTargetContentTextData): IMouseTargetContentText {
+		return { type: MouseTargetType.CONTENT_TEXT, element, mouseColumn, position, leftoverVisibleColumns, range: this._deduceRage(position, range), detail };
 	}
-	public static createContentEmpty(element: HTMLElement | null, mouseColumn: number, position: Position, detail: IMouseTargetContentEmptyData): IMouseTargetContentEmpty {
-		return { type: MouseTargetType.CONTENT_EMPTY, element, mouseColumn, position, range: this._deduceRage(position), detail };
+	public static createContentEmpty(element: HTMLElement | null, mouseColumn: number, position: Position, leftoverVisibleColumns: number, detail: IMouseTargetContentEmptyData): IMouseTargetContentEmpty {
+		return { type: MouseTargetType.CONTENT_EMPTY, element, mouseColumn, position, leftoverVisibleColumns, range: this._deduceRage(position), detail };
 	}
 	public static createContentWidget(element: HTMLElement | null, mouseColumn: number, detail: string): IMouseTargetContentWidget {
-		return { type: MouseTargetType.CONTENT_WIDGET, element, mouseColumn, position: null, range: null, detail };
+		return { type: MouseTargetType.CONTENT_WIDGET, element, mouseColumn, position: null, leftoverVisibleColumns: 0, range: null, detail };
 	}
-	public static createScrollbar(element: HTMLElement | null, mouseColumn: number, position: Position): IMouseTargetScrollbar {
-		return { type: MouseTargetType.SCROLLBAR, element, mouseColumn, position, range: this._deduceRage(position) };
+	public static createScrollbar(element: HTMLElement | null, mouseColumn: number, position: Position, leftoverVisibleColumns: number): IMouseTargetScrollbar {
+		return { type: MouseTargetType.SCROLLBAR, element, mouseColumn, position, leftoverVisibleColumns, range: this._deduceRage(position) };
 	}
 	public static createOverlayWidget(element: HTMLElement | null, mouseColumn: number, detail: string): IMouseTargetOverlayWidget {
-		return { type: MouseTargetType.OVERLAY_WIDGET, element, mouseColumn, position: null, range: null, detail };
+		return { type: MouseTargetType.OVERLAY_WIDGET, element, mouseColumn, position: null, leftoverVisibleColumns: 0, range: null, detail };
 	}
-	public static createOutsideEditor(mouseColumn: number, position: Position, outsidePosition: 'above' | 'below' | 'left' | 'right', outsideDistance: number): IMouseTargetOutsideEditor {
-		return { type: MouseTargetType.OUTSIDE_EDITOR, element: null, mouseColumn, position, range: this._deduceRage(position), outsidePosition, outsideDistance };
+	public static createOutsideEditor(mouseColumn: number, position: Position, leftoverVisibleColumns: number, outsidePosition: 'above' | 'below' | 'left' | 'right', outsideDistance: number): IMouseTargetOutsideEditor {
+		return { type: MouseTargetType.OUTSIDE_EDITOR, element: null, mouseColumn, position, leftoverVisibleColumns, range: this._deduceRage(position), outsidePosition, outsideDistance };
 	}
 
 	private static _typeToString(type: MouseTargetType): string {
@@ -452,12 +452,15 @@ class HitTestRequest extends BareHitTestRequest {
 		this._useHitTestTarget = true;
 	}
 
-	private _getMouseColumn(position: Position | null = null): { leftoverVisibleColumns: number; mouseColumn: number } {
+	private _fixPositions(position: Position): { fixedPosition: Position; leftoverVisibleColumns: number; mouseColumn: number };
+	private _fixPositions(): { fixedPosition: null; leftoverVisibleColumns: number; mouseColumn: number };
+	private _fixPositions(position: Position | null): { fixedPosition: Position | null; leftoverVisibleColumns: number; mouseColumn: number };
+	private _fixPositions(position: Position | null = null): { fixedPosition: Position | null; leftoverVisibleColumns: number; mouseColumn: number } {
 		if (position) {
 			const visibleColumn = 1 + CursorColumns.visibleColumnFromColumn(this._ctx.viewModel.getLineContent(position.lineNumber), position.column, this._ctx.viewModel.model.getOptions().tabSize);
 			const maxColumn = this._ctx.viewModel.getLineMaxColumn(position.lineNumber);
 			if (position.column < maxColumn) {
-				return { leftoverVisibleColumns: 0, mouseColumn: visibleColumn };
+				return { fixedPosition: position, leftoverVisibleColumns: 0, mouseColumn: visibleColumn };
 			}
 
 			const visibleRange = this._ctx.visibleRangeForPosition(position.lineNumber, maxColumn);
@@ -466,7 +469,9 @@ class HitTestRequest extends BareHitTestRequest {
 				const spaceWidth = this._ctx.spaceWidth;
 				const offset = this.mouseContentHorizontalOffset - lineWidth - spaceWidth / 2;
 				const leftoverVisibleColumns = Math.max(0, MouseTargetFactory._getMouseColumn(offset, spaceWidth) - 1);
+				const fixedPosition = new Position(position.lineNumber, maxColumn + leftoverVisibleColumns);
 				return {
+					fixedPosition,
 					leftoverVisibleColumns,
 					mouseColumn: visibleColumn + leftoverVisibleColumns,
 				};
@@ -474,51 +479,46 @@ class HitTestRequest extends BareHitTestRequest {
 		}
 
 		return {
+			fixedPosition: position,
 			leftoverVisibleColumns: 0,
 			mouseColumn: Math.max(0, MouseTargetFactory._getMouseColumn(this.mouseContentHorizontalOffset, this._ctx.spaceWidth)),
 		};
 	}
 
 	public fulfillUnknown(position: Position | null = null): IMouseTargetUnknown {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = position !== null ? new Position(position.lineNumber, position.column + leftoverVisibleColumns) : null;
-		return MouseTarget.createUnknown(this.target, mouseColumn, newPosition);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createUnknown(this.target, mouseColumn, fixedPosition, leftoverVisibleColumns);
 	}
 	public fulfillTextarea(): IMouseTargetTextarea {
-		const { mouseColumn } = this._getMouseColumn();
+		const { mouseColumn } = this._fixPositions();
 		return MouseTarget.createTextarea(this.target, mouseColumn);
 	}
 	public fulfillMargin(type: MouseTargetType.GUTTER_GLYPH_MARGIN | MouseTargetType.GUTTER_LINE_NUMBERS | MouseTargetType.GUTTER_LINE_DECORATIONS, position: Position, range: EditorRange, detail: IMouseTargetMarginData): IMouseTargetMargin {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
-		return MouseTarget.createMargin(type, this.target, mouseColumn, newPosition, range, detail);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createMargin(type, this.target, mouseColumn, fixedPosition, leftoverVisibleColumns, range, detail);
 	}
 	public fulfillViewZone(type: MouseTargetType.GUTTER_VIEW_ZONE | MouseTargetType.CONTENT_VIEW_ZONE, position: Position, detail: IMouseTargetViewZoneData): IMouseTargetViewZone {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
-		return MouseTarget.createViewZone(type, this.target, mouseColumn, newPosition, detail);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createViewZone(type, this.target, mouseColumn, fixedPosition, leftoverVisibleColumns, detail);
 	}
 	public fulfillContentText(position: Position, range: EditorRange | null, detail: IMouseTargetContentTextData): IMouseTargetContentText {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
-		return MouseTarget.createContentText(this.target, mouseColumn, newPosition, range, detail);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createContentText(this.target, mouseColumn, fixedPosition, leftoverVisibleColumns, range, detail);
 	}
 	public fulfillContentEmpty(position: Position, detail: IMouseTargetContentEmptyData): IMouseTargetContentEmpty {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
-		return MouseTarget.createContentEmpty(this.target, mouseColumn, newPosition, detail);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createContentEmpty(this.target, mouseColumn, fixedPosition, leftoverVisibleColumns, detail);
 	}
 	public fulfillContentWidget(detail: string): IMouseTargetContentWidget {
-		const { mouseColumn } = this._getMouseColumn();
+		const { mouseColumn } = this._fixPositions();
 		return MouseTarget.createContentWidget(this.target, mouseColumn, detail);
 	}
 	public fulfillScrollbar(position: Position): IMouseTargetScrollbar {
-		const { leftoverVisibleColumns, mouseColumn } = this._getMouseColumn(position);
-		const newPosition = new Position(position.lineNumber, position.column + leftoverVisibleColumns);
-		return MouseTarget.createScrollbar(this.target, mouseColumn, newPosition);
+		const { fixedPosition, leftoverVisibleColumns, mouseColumn } = this._fixPositions(position);
+		return MouseTarget.createScrollbar(this.target, mouseColumn, fixedPosition, leftoverVisibleColumns);
 	}
 	public fulfillOverlayWidget(detail: string): IMouseTargetOverlayWidget {
-		const { mouseColumn } = this._getMouseColumn();
+		const { mouseColumn } = this._fixPositions();
 		return MouseTarget.createOverlayWidget(this.target, mouseColumn, detail);
 	}
 }

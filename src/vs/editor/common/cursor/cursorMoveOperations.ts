@@ -23,6 +23,28 @@ export class CursorPosition {
 }
 
 export class MoveOperations {
+	// Operations in this class can handle both model and view model cursor states.
+	// However, model states may have their column clipped to the line length.
+	// If this happens, this function will unclip the them.
+	private static toVirtualSpace(cursor: SingleCursorState): SingleCursorState {
+		const selectionStartLeftoverVisibleColumns = cursor.selectionStartLeftoverVisibleColumns;
+		const leftoverVisibleColumns = cursor.leftoverVisibleColumns;
+		if (selectionStartLeftoverVisibleColumns === 0 && leftoverVisibleColumns === 0) {
+			// fast path
+			return cursor;
+		}
+
+		let selectionStart = cursor.selectionStart;
+		let selectionStartKind = cursor.selectionStartKind;
+		if (selectionStartLeftoverVisibleColumns > 0) {
+			const startPosition = cursor.selection.getSelectionStart().delta(0, cursor.selectionStartLeftoverVisibleColumns);
+			selectionStart = new Range(startPosition.lineNumber, startPosition.column, startPosition.lineNumber, startPosition.column);
+			selectionStartKind = SelectionStartKind.Simple;
+		}
+		const position = cursor.position.delta(0, cursor.leftoverVisibleColumns);
+		return new SingleCursorState(selectionStart, selectionStartKind, 0, position, 0, null);
+	}
+
 	public static leftPosition(model: ICursorSimpleModel, position: Position): Position {
 		if (position.column > model.getLineMinColumn(position.lineNumber)) {
 			return position.delta(undefined, -strings.prevCharLength(model.getLineContent(position.lineNumber), position.column - 1));
@@ -57,6 +79,11 @@ export class MoveOperations {
 	 * or `Math.round(viewModel.getLineContent(viewLineNumber).length / 2)` (for half lines).
 	*/
 	public static moveLeft(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState, inSelectionMode: boolean, noOfColumns: number): SingleCursorState {
+		const virtualSpace = config.virtualSpace;
+		if (virtualSpace) {
+			cursor = MoveOperations.toVirtualSpace(cursor);
+		}
+
 		let lineNumber: number,
 			column: number;
 
@@ -69,7 +96,6 @@ export class MoveOperations {
 			// This has no effect if noOfColumns === 1.
 			// It is ok to do so in the half-line scenario.
 			const pos = cursor.position.delta(undefined, -(noOfColumns - 1));
-			const virtualSpace = config.virtualSpace;
 			const minColumn = model.getLineMinColumn(pos.lineNumber);
 			const maxColumn = model.getLineMaxColumn(pos.lineNumber);
 			if (virtualSpace && pos.column <= minColumn) {
@@ -140,6 +166,11 @@ export class MoveOperations {
 	}
 
 	public static moveRight(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState, inSelectionMode: boolean, noOfColumns: number): SingleCursorState {
+		const virtualSpace = config.virtualSpace;
+		if (virtualSpace) {
+			cursor = MoveOperations.toVirtualSpace(cursor);
+		}
+
 		let lineNumber: number,
 			column: number;
 
@@ -149,7 +180,6 @@ export class MoveOperations {
 			column = cursor.selection.endColumn;
 		} else {
 			const pos = cursor.position.delta(undefined, noOfColumns - 1);
-			const virtualSpace = config.virtualSpace;
 			const minColumn = model.getLineMinColumn(pos.lineNumber);
 			const maxColumn = model.getLineMaxColumn(pos.lineNumber);
 			if (virtualSpace && pos.column >= minColumn) {
@@ -225,6 +255,10 @@ export class MoveOperations {
 	}
 
 	public static moveDown(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState, inSelectionMode: boolean, linesCount: number): SingleCursorState {
+		// For vertical movements, let's unclip the cursor even if not using virtual space.
+		// This will help set the currect column hint.
+		cursor = MoveOperations.toVirtualSpace(cursor);
+
 		let lineNumber: number,
 			column: number;
 
@@ -251,6 +285,8 @@ export class MoveOperations {
 	}
 
 	public static translateDown(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState): SingleCursorState {
+		cursor = MoveOperations.toVirtualSpace(cursor);
+
 		const columnHint = cursor.columnHint;
 		const selection = cursor.selection;
 
@@ -269,6 +305,8 @@ export class MoveOperations {
 	}
 
 	public static moveUp(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState, inSelectionMode: boolean, linesCount: number): SingleCursorState {
+		cursor = MoveOperations.toVirtualSpace(cursor);
+
 		let lineNumber: number,
 			column: number;
 
@@ -287,6 +325,8 @@ export class MoveOperations {
 	}
 
 	public static translateUp(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState): SingleCursorState {
+		cursor = MoveOperations.toVirtualSpace(cursor);
+
 		const columnHint = cursor.columnHint;
 		const selection = cursor.selection;
 

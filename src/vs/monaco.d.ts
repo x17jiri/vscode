@@ -5587,6 +5587,10 @@ declare namespace monaco.editor {
 		 */
 		readonly position: Position | null;
 		/**
+		 * TODO
+		 */
+		readonly leftoverVisibleColumns: number;
+		/**
 		 * Desired mouse column (e.g. when position.column gets clamped to text length -- clicking after text on a line).
 		 */
 		readonly mouseColumn: number;
