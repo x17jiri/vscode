@@ -238,7 +238,7 @@ export class CursorMoveCommands {
 	}
 
 	public static cancelSelection(viewModel: IViewModel, cursor: CursorState): PartialCursorState {
-		if (!cursor.modelState.hasSelection(viewModel.cursorConfig.virtualSpace)) {
+		if (!cursor.viewState.hasSelection()) {
 			return new CursorState(cursor.modelState, cursor.viewState);
 		}
 
@@ -261,16 +261,12 @@ export class CursorMoveCommands {
 			}
 		}
 		const position = viewModel.model.validatePosition(_position);
-		let viewPosition;
-		let leftoverVisibleColumns;
-		if (_viewPosition) {
-			viewPosition = viewModel.coordinatesConverter.validateViewPosition(new Position(_viewPosition.lineNumber, _viewPosition.column), position);
-			leftoverVisibleColumns = Math.max(0, _viewPosition.column - viewPosition.column);
-		} else {
-			viewPosition = viewModel.coordinatesConverter.convertModelPositionToViewPosition(position);
-			leftoverVisibleColumns = 0;
-		}
-		return CursorState.fromViewState(cursor.viewState.move(inSelectionMode, viewPosition.lineNumber, viewPosition.column, leftoverVisibleColumns, null));
+		const viewPosition = (
+			_viewPosition
+				? viewModel.coordinatesConverter.validateViewPosition(new Position(_viewPosition.lineNumber, _viewPosition.column), position)
+				: viewModel.coordinatesConverter.convertModelPositionToViewPosition(position)
+		);
+		return CursorState.fromViewState(cursor.viewState.move(inSelectionMode, viewPosition.lineNumber, viewPosition.column, 0, null));
 	}
 
 	public static simpleMove(viewModel: IViewModel, cursors: CursorState[], direction: CursorMove.SimpleMoveDirection, inSelectionMode: boolean, value: number, unit: CursorMove.Unit): PartialCursorState[] | null {
@@ -403,8 +399,8 @@ export class CursorMoveCommands {
 			} else {
 				newViewLineNumber = viewLineNumber;
 			}
-			const position = MoveOperations.vertical(viewModel.cursorConfig, viewModel, viewLineNumber, cursor.viewState.position.column, cursor.viewState.leftoverVisibleColumns, cursor.viewState.columnHint, newViewLineNumber, false);
-			return CursorState.fromViewState(cursor.viewState.move(inSelectionMode, position.lineNumber, position.column, position.leftoverVisibleColumns, position.columnHint));
+			const position = MoveOperations.vertical(viewModel.cursorConfig, viewModel, viewLineNumber, cursor.viewState.position.column, cursor.viewState.columnHint, newViewLineNumber, false);
+			return CursorState.fromViewState(cursor.viewState.move(inSelectionMode, position.lineNumber, position.column, 0, position.columnHint));
 		}
 	}
 

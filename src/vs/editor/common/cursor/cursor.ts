@@ -414,7 +414,7 @@ export class CursorsController extends Disposable {
 		}
 
 		const selections = this._cursors.getSelections();
-		const viewSelections = this._cursors.getViewSelectionsInVirtualSpace();
+		const viewSelections = this._cursors.getViewSelections();
 
 		// Let the view get the event first.
 		eventsCollector.emitViewEvent(new ViewCursorStateChangedEvent(viewSelections, selections, reason));

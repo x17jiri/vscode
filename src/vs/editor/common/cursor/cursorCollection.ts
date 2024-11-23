@@ -99,15 +99,6 @@ export class CursorCollection {
 		));
 	}
 
-	public getViewSelectionsInVirtualSpace(): Selection[] {
-		return this.cursors.map(c => new Selection(
-			c.viewState.selection.selectionStartLineNumber,
-			c.viewState.selection.selectionStartColumn + c.viewState.selectionStartLeftoverVisibleColumns,
-			c.viewState.selection.positionLineNumber,
-			c.viewState.selection.positionColumn + c.viewState.leftoverVisibleColumns,
-		));
-	}
-
 	public getViewSelections(): Selection[] {
 		return this.cursors.map(c => c.viewState.selection);
 	}

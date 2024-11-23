@@ -104,11 +104,8 @@ export class Cursor {
 
 		return new SingleCursorState(
 			Range.fromPositions(validSStartPosition, validSEndPosition),
-			viewState.selectionStartKind,
-			viewState.selectionStartLeftoverVisibleColumns + sStartPosition.column - validSStartPosition.column,
-			validPosition,
-			viewState.leftoverVisibleColumns + position.column - validPosition.column,
-			viewState.columnHint,
+			viewState.selectionStartKind, 0,
+			validPosition, 0, viewState.columnHint,
 		);
 	}
 
@@ -130,9 +127,14 @@ export class Cursor {
 				context.coordinatesConverter.convertViewPositionToModelPosition(viewState.position)
 			);
 
+			const selectionStartMaxColumn = context.viewModel.getLineMaxColumn(viewState.selection.selectionStartLineNumber);
+			const selectionStartLeftoverVisibleColumns = Math.max(0, selectionStartMaxColumn - selectionStart.endColumn);
+			const positionMaxColumn = context.viewModel.getLineMaxColumn(position.lineNumber);
+			const leftoverVisibleColumns = Math.max(0, positionMaxColumn - position.column);
+
 			modelState = new SingleCursorState(
-				selectionStart, viewState.selectionStartKind, viewState.selectionStartLeftoverVisibleColumns,
-				position, viewState.leftoverVisibleColumns, null,
+				selectionStart, viewState.selectionStartKind, selectionStartLeftoverVisibleColumns,
+				position, leftoverVisibleColumns, null,
 			);
 		} else {
 			// Validate new model state
@@ -162,21 +164,31 @@ export class Cursor {
 
 		if (!viewState) {
 			// We only have the model state => compute the view state
-			const viewSelectionStart1 = context.coordinatesConverter.convertModelPositionToViewPosition(new Position(modelState.selectionStart.startLineNumber, modelState.selectionStart.startColumn));
-			const viewSelectionStart2 = context.coordinatesConverter.convertModelPositionToViewPosition(new Position(modelState.selectionStart.endLineNumber, modelState.selectionStart.endColumn));
-			const viewSelectionStart = new Range(viewSelectionStart1.lineNumber, viewSelectionStart1.column, viewSelectionStart2.lineNumber, viewSelectionStart2.column);
-			const viewPosition = context.coordinatesConverter.convertModelPositionToViewPosition(modelState.position);
+			const viewSelectionStart1 =
+				context.coordinatesConverter
+					.convertModelPositionToViewPosition(new Position(modelState.selectionStart.startLineNumber, modelState.selectionStart.startColumn))
+					.delta(0, modelState.selectionStartLeftoverVisibleColumns);
+			const viewSelectionStart2 =
+				context.coordinatesConverter
+					.convertModelPositionToViewPosition(new Position(modelState.selectionStart.endLineNumber, modelState.selectionStart.endColumn))
+					.delta(0, modelState.selectionStartLeftoverVisibleColumns);
+			const viewSelectionStart =
+				new Range(viewSelectionStart1.lineNumber, viewSelectionStart1.column, viewSelectionStart2.lineNumber, viewSelectionStart2.column);
+			const viewPosition =
+				context.coordinatesConverter
+					.convertModelPositionToViewPosition(modelState.position)
+					.delta(0, modelState.leftoverVisibleColumns);
 			viewState = new SingleCursorState(
-				viewSelectionStart, modelState.selectionStartKind, modelState.selectionStartLeftoverVisibleColumns,
-				viewPosition, modelState.leftoverVisibleColumns, null,
+				viewSelectionStart, modelState.selectionStartKind, 0,
+				viewPosition, 0, null,
 			);
 		} else {
 			// Validate new view state
 			const viewSelectionStart = context.coordinatesConverter.validateViewRange(viewState.selectionStart, modelState.selectionStart);
 			const viewPosition = context.coordinatesConverter.validateViewPosition(viewState.position, modelState.position);
 			viewState = new SingleCursorState(
-				viewSelectionStart, modelState.selectionStartKind, viewState.selectionStartLeftoverVisibleColumns,
-				viewPosition, viewState.leftoverVisibleColumns, viewState.columnHint,
+				viewSelectionStart, modelState.selectionStartKind, 0,
+				viewPosition, 0, viewState.columnHint,
 			);
 		}
 

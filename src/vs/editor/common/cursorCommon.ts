@@ -229,12 +229,12 @@ export class CursorConfiguration {
 			return minColumn;
 		}
 
-		//		if (!this.virtualSpace) {
-		const maxColumn = model.getLineMaxColumn(lineNumber);
-		if (result > maxColumn) {
-			return maxColumn;
+		if (!this.virtualSpace) {
+			const maxColumn = model.getLineMaxColumn(lineNumber);
+			if (result > maxColumn) {
+				return maxColumn;
+			}
 		}
-		//		}
 
 		return result;
 	}
@@ -395,12 +395,8 @@ export class SingleCursorState {
 		);
 	}
 
-	public hasSelection(virtualSpace: boolean): boolean {
-		return (
-			!this.selection.isEmpty()
-			|| !this.selectionStart.isEmpty()
-			|| (virtualSpace && this.selectionStartLeftoverVisibleColumns !== this.leftoverVisibleColumns)
-		);
+	public hasSelection(): boolean {
+		return (!this.selection.isEmpty() || !this.selectionStart.isEmpty());
 	}
 
 	public move(inSelectionMode: boolean, lineNumber: number, column: number, leftoverVisibleColumns: number, columnHint: number | null): SingleCursorState {
