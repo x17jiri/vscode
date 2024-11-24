@@ -181,7 +181,7 @@ export class CursorCollection {
 		for (let i = 0, len = cursors.length; i < len; i++) {
 			sortedCursors.push({
 				index: i,
-				selection: cursors[i].modelState.virtualSpaceSelection()
+				selection: cursors[i].modelState.selectionInVirtualSpace()
 			});
 		}
 

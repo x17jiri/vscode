@@ -274,7 +274,7 @@ export class CursorsController extends Disposable {
 	}
 
 	public getSelectionInVirtualSpace(): Selection {
-		return this._cursors.getPrimaryCursor().modelState.virtualSpaceSelection();
+		return this._cursors.getPrimaryCursor().modelState.selectionInVirtualSpace();
 	}
 
 	public getTopMostViewPosition(): Position {
@@ -553,7 +553,7 @@ export class CursorsController extends Disposable {
 		this._executeEdit(() => {
 			if (source === 'keyboard') {
 				// composition finishes, let's check if we need to auto complete if necessary.
-				this._executeEditOperation(TypeOperations.compositionEndWithInterceptors(this._prevEditOperationType, this.context.cursorConfig, this._model, compositionOutcome, this.getSelections(), this.getAutoClosedCharacters()));
+				this._executeEditOperation(TypeOperations.compositionEndWithInterceptors(this._prevEditOperationType, this.context.cursorConfig, this._model, compositionOutcome, this.getSelectionsInVirtualSpace(), this.getAutoClosedCharacters()));
 			}
 		}, eventsCollector, source);
 	}
@@ -570,13 +570,13 @@ export class CursorsController extends Disposable {
 					const chr = text.substr(offset, charLength);
 
 					// Here we must interpret each typed character individually
-					this._executeEditOperation(TypeOperations.typeWithInterceptors(!!this._compositionState, this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelections(), this.getAutoClosedCharacters(), chr));
+					this._executeEditOperation(TypeOperations.typeWithInterceptors(!!this._compositionState, this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelectionsInVirtualSpace(), this.getAutoClosedCharacters(), chr));
 
 					offset += charLength;
 				}
 
 			} else {
-				this._executeEditOperation(TypeOperations.typeWithoutInterceptors(this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelections(), text));
+				this._executeEditOperation(TypeOperations.typeWithoutInterceptors(this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelectionsInVirtualSpace(), text));
 			}
 		}, eventsCollector, source);
 	}
@@ -595,7 +595,7 @@ export class CursorsController extends Disposable {
 			return;
 		}
 		this._executeEdit(() => {
-			this._executeEditOperation(TypeOperations.compositionType(this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelections(), text, replacePrevCharCnt, replaceNextCharCnt, positionDelta));
+			this._executeEditOperation(TypeOperations.compositionType(this._prevEditOperationType, this.context.cursorConfig, this._model, this.getSelectionsInVirtualSpace(), text, replacePrevCharCnt, replaceNextCharCnt, positionDelta));
 		}, eventsCollector, source);
 	}
 
@@ -607,7 +607,7 @@ export class CursorsController extends Disposable {
 
 	public cut(eventsCollector: ViewModelEventsCollector, source?: string | null | undefined): void {
 		this._executeEdit(() => {
-			this._executeEditOperation(DeleteOperations.cut(this.context.cursorConfig, this._model, this.getSelections()));
+			this._executeEditOperation(DeleteOperations.cut(this.context.cursorConfig, this._model, this.getSelectionsInVirtualSpace()));
 		}, eventsCollector, source);
 	}
 
@@ -797,6 +797,33 @@ export class CommandExecutor {
 		for (let i = 0, len = rawOperations.length; i < len; i++) {
 			if (!loserCursorsMap.hasOwnProperty(rawOperations[i].identifier!.major.toString())) {
 				filteredOperations.push(rawOperations[i]);
+			}
+		}
+
+		// Add virtual space
+		for (let i = 0; i < filteredOperations.length; i++) {
+			const editOperation = filteredOperations[i];
+			const range = editOperation.range;
+
+			const startLineNumber = range.startLineNumber;
+			let startColumn = range.startColumn;
+			const startMaxColumn = ctx.model.getLineMaxColumn(startLineNumber);
+
+			const endLineNumber = range.endLineNumber;
+			let endColumn = range.endColumn;
+			const endMaxColumn = ctx.model.getLineMaxColumn(endLineNumber);
+
+			if (startColumn > startMaxColumn || endColumn > endMaxColumn) {
+				let spacesLen = 0;
+				if (startColumn > startMaxColumn) {
+					spacesLen = (startColumn - startMaxColumn);
+					startColumn = startMaxColumn;
+				}
+				if (endColumn > endMaxColumn) {
+					endColumn = endMaxColumn;
+				}
+				editOperation.range = new Range(startLineNumber, startColumn, endLineNumber, endColumn);
+				editOperation.text = ' '.repeat(spacesLen) + editOperation.text;
 			}
 		}
 

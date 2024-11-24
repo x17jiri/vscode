@@ -423,22 +423,22 @@ export class SingleCursorState {
 		}
 	}
 
-	public virtualSpaceSelStart(): Position {
+	public selectionStartInVirtualSpace(): Position {
 		return new Position(
 			this.selection.selectionStartLineNumber,
 			this.selection.selectionStartColumn + this.selectionStartLeftoverVisibleColumns,
 		);
 	}
 
-	public virtualSpacePosition(): Position {
+	public positionInVirtualSpace(): Position {
 		return new Position(
 			this.position.lineNumber,
 			this.position.column + this.leftoverVisibleColumns,
 		);
 	}
 
-	public virtualSpaceSelection(): Selection {
-		return Selection.fromPositions(this.virtualSpaceSelStart(), this.virtualSpacePosition());
+	public selectionInVirtualSpace(): Selection {
+		return Selection.fromPositions(this.selectionStartInVirtualSpace(), this.positionInVirtualSpace());
 	}
 
 	public isLTR(): boolean {

@@ -1990,7 +1990,7 @@ export namespace CoreEditingCommands {
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: unknown): void {
 			editor.pushUndoStop();
-			editor.executeCommands(this.id, EnterOperation.lineBreakInsert(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
+			editor.executeCommands(this.id, EnterOperation.lineBreakInsert(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selectionInVirtualSpace())));
 		}
 	});
 
@@ -2012,7 +2012,7 @@ export namespace CoreEditingCommands {
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: unknown): void {
 			editor.pushUndoStop();
-			editor.executeCommands(this.id, TypeOperations.outdent(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
+			editor.executeCommands(this.id, TypeOperations.outdent(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selectionInVirtualSpace())));
 			editor.pushUndoStop();
 		}
 	});
@@ -2035,7 +2035,7 @@ export namespace CoreEditingCommands {
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: unknown): void {
 			editor.pushUndoStop();
-			editor.executeCommands(this.id, TypeOperations.tab(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
+			editor.executeCommands(this.id, TypeOperations.tab(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selectionInVirtualSpace())));
 			editor.pushUndoStop();
 		}
 	});
@@ -2056,7 +2056,7 @@ export namespace CoreEditingCommands {
 		}
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: unknown): void {
-			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteLeft(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection), viewModel.getCursorAutoClosedCharacters());
+			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteLeft(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selectionInVirtualSpace()), viewModel.getCursorAutoClosedCharacters());
 			if (shouldPushStackElementBefore) {
 				editor.pushUndoStop();
 			}
@@ -2080,7 +2080,7 @@ export namespace CoreEditingCommands {
 		}
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: unknown): void {
-			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteRight(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection));
+			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteRight(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selectionInVirtualSpace()));
 			if (shouldPushStackElementBefore) {
 				editor.pushUndoStop();
 			}
