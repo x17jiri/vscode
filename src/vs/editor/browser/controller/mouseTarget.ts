@@ -457,19 +457,21 @@ class HitTestRequest extends BareHitTestRequest {
 	private _fixPositions(position: Position | null): { fixedPosition: Position | null; leftoverVisibleColumns: number; mouseColumn: number };
 	private _fixPositions(position: Position | null = null): { fixedPosition: Position | null; leftoverVisibleColumns: number; mouseColumn: number } {
 		if (position) {
-			const visibleColumn = 1 + CursorColumns.visibleColumnFromColumn(this._ctx.viewModel.getLineContent(position.lineNumber), position.column, this._ctx.viewModel.model.getOptions().tabSize);
-			const maxColumn = this._ctx.viewModel.getLineMaxColumn(position.lineNumber);
-			if (position.column < maxColumn) {
+			const lineNumber = position.lineNumber;
+			const maxColumn = this._ctx.viewModel.getLineMaxColumn(lineNumber);
+			const column = Math.min(position.column, maxColumn);
+			const visibleColumn = 1 + CursorColumns.visibleColumnFromColumn(this._ctx.viewModel.getLineContent(lineNumber), column, this._ctx.viewModel.model.getOptions().tabSize);
+			if (column < maxColumn) {
 				return { fixedPosition: position, leftoverVisibleColumns: 0, mouseColumn: visibleColumn };
 			}
 
-			const visibleRange = this._ctx.visibleRangeForPosition(position.lineNumber, maxColumn);
+			const visibleRange = this._ctx.visibleRangeForPosition(lineNumber, maxColumn);
 			if (visibleRange !== null) {
 				const lineWidth = visibleRange.originalLeft;
 				const spaceWidth = this._ctx.spaceWidth;
 				const offset = this.mouseContentHorizontalOffset - lineWidth - spaceWidth / 2;
 				const leftoverVisibleColumns = Math.max(0, MouseTargetFactory._getMouseColumn(offset, spaceWidth) - 1);
-				const fixedPosition = new Position(position.lineNumber, maxColumn + leftoverVisibleColumns);
+				const fixedPosition = new Position(lineNumber, maxColumn + leftoverVisibleColumns);
 				return {
 					fixedPosition,
 					leftoverVisibleColumns,
@@ -478,6 +480,7 @@ class HitTestRequest extends BareHitTestRequest {
 			}
 		}
 
+		// fallback
 		return {
 			fixedPosition: position,
 			leftoverVisibleColumns: 0,
