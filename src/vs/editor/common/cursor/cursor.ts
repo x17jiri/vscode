@@ -161,7 +161,7 @@ export class CursorsController extends Disposable {
 
 		const result: editorCommon.ICursorState[] = [];
 
-		const selections = this._cursors.getSelections(); // TODO - selectionsInVirtualSpace
+		const selections = this._cursors.getSelectionsInVirtualSpace();
 		for (let i = 0, len = selections.length; i < len; i++) {
 			const selection = selections[i];
 

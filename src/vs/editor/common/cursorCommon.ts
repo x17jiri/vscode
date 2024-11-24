@@ -7,7 +7,7 @@ import { ConfigurationChangedEvent, EditorAutoClosingEditStrategy, EditorAutoClo
 import { LineTokens } from './tokens/lineTokens.js';
 import { Position } from './core/position.js';
 import { Range } from './core/range.js';
-import { ISelection, Selection, SelectionDirection } from './core/selection.js';
+import { ISelection, Selection } from './core/selection.js';
 import { ICommand } from './editorCommon.js';
 import { IEditorConfiguration } from './config/editorConfiguration.js';
 import { PositionAffinity, TextModelResolvedOptions } from './model.js';
@@ -370,9 +370,38 @@ export class SingleCursorState {
 
 	public readonly selection: Selection;
 
-	// Assumptions:
-	// - columnHint is only used when this is view cursor state
-	// - selectionStartLeftoverVisibleColumns can be != 0 only if selectionStart is an empty range
+	// For view model, all positions are the way the user sees them. So if virtual space is turned on,
+	// column might be in virtual space.
+	//
+	// For model, positions are clipped at line length and any excess columns are stored in leftoverVisibleColumns.
+	// So code that hasn't been updated for virtual space will never see virtual space model positions.
+	//
+	// Code that's ready for virtual space can use positionInVirtualSpace() and selectionInVirtualSpace()
+	// to get model positions in virtual space.
+	//
+	// columnHint is used to preserve column during vertical movements.
+	// Without virtual space, it helps to recover from short lines.
+	// With virtual space, it helps when going through inlay hints.
+	//
+	// Example of cursor going down without columnHint:
+	//
+	//     | = cursor
+	//     x = inlay hint
+	//     . = other text
+	//
+	//     .....|.....    ...........    ...........
+	//     ...xxxxx... -> ..|xxxxx... -> ...xxxxx...
+	//     ...........    ...........    ..|........
+	//
+	// Same situation with columnHint:
+	//     .....|.....    ...........    ...........
+	//     ...xxxxx... -> ..|xxxxx... -> ...xxxxx...
+	//     ...........    ...........    .....|.....
+	//
+	// When converting between model and view model, we convert positions in virtual space
+	// to leftoverVisibleColumns and back.
+	// Column hint is not easy to convert, so it is dropped during conversions.
+
 	constructor(
 		public readonly selectionStart: Range,
 		public readonly selectionStartKind: SelectionStartKind,
@@ -439,44 +468,6 @@ export class SingleCursorState {
 
 	public selectionInVirtualSpace(): Selection {
 		return Selection.fromPositions(this.selectionStartInVirtualSpace(), this.positionInVirtualSpace());
-	}
-
-	public isLTR(): boolean {
-		return this.selection.isEmpty()
-			? this.selectionStartLeftoverVisibleColumns < this.leftoverVisibleColumns
-			: this.selection.getDirection() === SelectionDirection.LTR;
-	}
-
-	public leftmostPosition(): PositionTripple {
-		if (this.isLTR()) {
-			return new PositionTripple(
-				this.selection.selectionStartLineNumber,
-				this.selection.selectionStartColumn,
-				this.selectionStartLeftoverVisibleColumns,
-			);
-		} else {
-			return new PositionTripple(
-				this.position.lineNumber,
-				this.position.column,
-				this.leftoverVisibleColumns,
-			);
-		}
-	}
-
-	public rightmostPosition(): PositionTripple {
-		if (this.isLTR()) {
-			return new PositionTripple(
-				this.position.lineNumber,
-				this.position.column,
-				this.leftoverVisibleColumns,
-			);
-		} else {
-			return new PositionTripple(
-				this.selection.selectionStartLineNumber,
-				this.selection.selectionStartColumn,
-				this.selectionStartLeftoverVisibleColumns,
-			);
-		}
 	}
 
 	private static _computeSelection(selectionStart: Range, position: Position): Selection {

@@ -1679,8 +1679,7 @@ export namespace CoreNavigationCommands {
 			const states = viewModel.getCursorStates();
 			const newStates: PartialCursorState[] = states.slice(0);
 			const lastAddedState = states[lastAddedCursorIndex];
-			const hasSelection = lastAddedState.viewState.hasSelection();
-			newStates[lastAddedCursorIndex] = CursorMoveCommands.word(viewModel, lastAddedState, hasSelection, args.position);
+			newStates[lastAddedCursorIndex] = CursorMoveCommands.word(viewModel, lastAddedState, lastAddedState.viewState.hasSelection(), args.position);
 
 			viewModel.model.pushStackElement();
 			viewModel.setCursorStates(

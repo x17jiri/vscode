@@ -177,7 +177,7 @@ abstract class AbstractMoveLinesAction extends EditorAction {
 		const languageConfigurationService = accessor.get(ILanguageConfigurationService);
 
 		const commands: ICommand[] = [];
-		const selections = editor.getSelections() || [];
+		const selections = editor.getSelectionsInVirtualSpace() || [];
 		const autoIndent = editor.getOption(EditorOption.autoIndent);
 
 		for (const selection of selections) {

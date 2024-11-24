@@ -396,7 +396,11 @@ export interface IBaseMouseTarget {
 	 */
 	readonly position: Position | null;
 	/**
-	 * TODO
+	 * If position is in virtual space, this will contain how far beyond the end of the line the position is.
+	 * Note that for view model, `position` is not clipped to line length, so there is no need
+	 * to add `leftoverVisibleColumns` to `position.column`.
+	 * When converting to model target, `position` will be clipped and `leftoverVisibleColumns`
+	 * can be used to recover the virtual space position.
 	 */
 	readonly leftoverVisibleColumns: number;
 	/**

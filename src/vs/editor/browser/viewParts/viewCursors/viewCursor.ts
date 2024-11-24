@@ -157,7 +157,6 @@ export class ViewCursor {
 		const { lineNumber, column } = this._position;
 		const lineContent = this._context.viewModel.getLineContent(lineNumber);
 		if (column > lineContent.length) {
-			// TODO - could this return ' '?
 			return [new Position(lineNumber, column), ''];
 		} else {
 			const [startOffset, endOffset] = strings.getCharContainingOffset(lineContent, column - 1);
