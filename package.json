@@ -1,9 +1,9 @@
 {
-  "name": "code-oss-dev",
-  "version": "1.96.0",
-  "distro": "6adce63c9c185e5d9c557a4cc170a363db22c1ee",
+  "name": "code-x17",
+  "version": "1.94.0",
+  "distro": "350f0404ef17accb38b1359e82886738870a7377",
   "author": {
-    "name": "Microsoft Corporation"
+    "name": "Jiri Bobek"
   },
   "license": "MIT",
   "main": "./out/main.js",
@@ -232,10 +232,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
+    "url": "https://github.com/x17jiri/vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode/issues"
+    "url": "https://github.com/x17jiri/vscode/issues"
   },
   "optionalDependencies": {
     "windows-foreground-love": "0.5.0"
