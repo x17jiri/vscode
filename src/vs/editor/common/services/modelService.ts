@@ -58,6 +58,7 @@ interface IRawEditorConfig {
 	creationOptions?: any;
 	largeFileOptimizations?: any;
 	bracketPairColorization?: any;
+	virtualSpace?: any;
 }
 
 interface IRawConfig {
@@ -174,6 +175,10 @@ export class ModelService extends Disposable implements IModelService {
 				independentColorPoolPerBracketType: !!config.editor.bracketPairColorization.independentColorPoolPerBracketType
 			};
 		}
+		let virtualSpace = EDITOR_MODEL_DEFAULTS.virtualSpace;
+		if (config.editor && typeof config.editor.virtualSpace !== 'undefined') {
+			virtualSpace = (config.editor.virtualSpace === 'false' ? false : Boolean(config.editor.virtualSpace));
+		}
 
 		return {
 			isForSimpleWidget: isForSimpleWidget,
@@ -184,7 +189,8 @@ export class ModelService extends Disposable implements IModelService {
 			defaultEOL: newDefaultEOL,
 			trimAutoWhitespace: trimAutoWhitespace,
 			largeFileOptimizations: largeFileOptimizations,
-			bracketPairColorizationOptions
+			bracketPairColorizationOptions,
+			virtualSpace: virtualSpace && !isForSimpleWidget,
 		};
 	}
 
@@ -253,6 +259,7 @@ export class ModelService extends Disposable implements IModelService {
 			&& (currentOptions.indentSize === newOptions.indentSize)
 			&& (currentOptions.trimAutoWhitespace === newOptions.trimAutoWhitespace)
 			&& equals(currentOptions.bracketPairColorizationOptions, newOptions.bracketPairColorizationOptions)
+			&& (currentOptions.virtualSpace === newOptions.virtualSpace)
 		) {
 			// Same indent opts, no need to touch the model
 			return;
@@ -262,7 +269,8 @@ export class ModelService extends Disposable implements IModelService {
 			model.detectIndentation(newOptions.insertSpaces, newOptions.tabSize);
 			model.updateOptions({
 				trimAutoWhitespace: newOptions.trimAutoWhitespace,
-				bracketColorizationOptions: newOptions.bracketPairColorizationOptions
+				bracketColorizationOptions: newOptions.bracketPairColorizationOptions,
+				virtualSpace: newOptions.virtualSpace,
 			});
 		} else {
 			model.updateOptions({
@@ -270,7 +278,8 @@ export class ModelService extends Disposable implements IModelService {
 				tabSize: newOptions.tabSize,
 				indentSize: newOptions.indentSize,
 				trimAutoWhitespace: newOptions.trimAutoWhitespace,
-				bracketColorizationOptions: newOptions.bracketPairColorizationOptions
+				bracketColorizationOptions: newOptions.bracketPairColorizationOptions,
+				virtualSpace: newOptions.virtualSpace,
 			});
 		}
 	}
