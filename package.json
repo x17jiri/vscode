@@ -1,9 +1,9 @@
 {
-  "name": "code-oss-dev",
-  "version": "1.96.0",
-  "distro": "6adce63c9c185e5d9c557a4cc170a363db22c1ee",
+  "name": "code-x17",
+  "version": "1.95.3",
+  "distro": "350f0404ef17accb38b1359e82886738870a7377",
   "author": {
-    "name": "Microsoft Corporation"
+    "name": "Jiri Bobek"
   },
   "license": "MIT",
   "main": "./out/main.js",
@@ -136,7 +136,7 @@
     "@types/yauzl": "^2.10.0",
     "@types/yazl": "^2.4.2",
     "@typescript-eslint/utils": "^8.8.0",
-    "@vscode/gulp-electron": "^1.36.0",
+    "@vscode/gulp-electron": "git+https://github.com/x17jiri/vscode-gulp-electron.git#bump-rcedit-version",
     "@vscode/l10n-dev": "0.0.35",
     "@vscode/telemetry-extractor": "^1.10.2",
     "@vscode/test-cli": "^0.0.6",
@@ -232,10 +232,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
+    "url": "https://github.com/x17jiri/vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode/issues"
+    "url": "https://github.com/x17jiri/vscode/issues"
   },
   "optionalDependencies": {
     "windows-foreground-love": "0.5.0"
