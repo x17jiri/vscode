@@ -566,7 +566,9 @@ function parseCLIArgs(): NativeParsedArgs {
 			'disable-chromium-sandbox',
 		],
 		default: {
-			'sandbox': true
+			'sandbox': true,
+			'disable-crash-reporter': true,
+			'disable-telemetry': true,
 		},
 		alias: {
 			'no-sandbox': 'sandbox'

@@ -1,9 +1,9 @@
 {
-  "name": "code-oss-dev",
+  "name": "code-x17",
   "version": "1.101.2",
   "distro": "fb9b4b01c06699c1a80f26ca9de940a9aebb29e0",
   "author": {
-    "name": "Microsoft Corporation"
+    "name": "Jiri Bobek"
   },
   "license": "MIT",
   "main": "./out/main.js",
@@ -137,7 +137,7 @@
     "@types/yauzl": "^2.10.0",
     "@types/yazl": "^2.4.2",
     "@typescript-eslint/utils": "^8.8.0",
-    "@vscode/gulp-electron": "^1.36.0",
+    "@vscode/gulp-electron": "^1.37.0",
     "@vscode/l10n-dev": "0.0.35",
     "@vscode/telemetry-extractor": "^1.10.2",
     "@vscode/test-cli": "^0.0.6",
@@ -227,10 +227,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
+    "url": "https://github.com/x17jiri/vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode/issues"
+    "url": "https://github.com/x17jiri/vscode/issues"
   },
   "optionalDependencies": {
     "windows-foreground-love": "0.5.0"
